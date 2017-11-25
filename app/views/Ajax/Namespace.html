@@ -1,0 +1,55 @@
+{{template "ajax.html" .}}
+
+{{if .namespaces}}
+<table class="table table-hover table-sm">
+    <colgroup>
+        <col width="*">
+        <col width="10%">
+        <col width="10%">
+        <col width="15%">
+        <col width="10%">
+    </colgroup>
+    <thead>
+    <tr>
+        <th>Namespace</th>
+        <th>Team</th>
+        <th>Status</th>
+        <th>Created</th>
+        <th class="toolbox">
+            <button type="button" class="btn btn-primary bnt-ns-create">Create</button>
+        </th>
+    </tr>
+    </thead>
+{{range .namespaces}}
+    <tbody>
+    <tr data-k8s-namespace="{{.Name}}">
+        <td scope="row">{{.Name}}</td>
+        <td>{{.Labels.team}}</td>
+        <td>
+            {{if eq "Active" .Status.Phase}}
+                <span class="badge badge-success">{{.Status.Phase}}</span>
+            {{else}}
+                <span class="badge badge-warning">{{.Status.Phase}}</span>
+            {{end}}
+        </td>
+        <td><span data-toggle="tooltip" title="{{.CreationTimestamp.UTC}}">{{timeago .CreationTimestamp.UTC}}</span></td>
+        <td class="toolbox">
+            {{if eq "Terminating" .Status.Phase}}
+                <button type="button" class="btn btn-danger bnt-ns-delete" disabled>Deleting...</button>
+            {{else}}
+                <button type="button" class="btn btn-danger bnt-ns-delete">Delete</button>
+            {{end}}
+        </td>
+    </tr>
+    </tbody>
+{{end}}
+</table>
+{{else}}
+<div class="alert alert-info" role="alert" style="margin-top: 1rem">
+    No namespaces found
+</div>
+
+<div style="text-align: right">
+    <button type="button" class="btn btn-primary bnt-ns-create">Create namespace</button>
+</div>
+{{end}}

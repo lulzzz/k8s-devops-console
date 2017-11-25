@@ -1,0 +1,14 @@
+
+  {{if eq .RunMode "dev"}}
+    {{template "debug.html" .}}
+  {{end}}
+  </main>
+  <script>
+      $(function () {
+          'use strict';
+
+          $('[data-toggle="tooltip"]').tooltip()
+      });
+  </script>
+  </body>
+</html>

@@ -1,0 +1,50 @@
+{{template "ajax.html" .}}
+<table class="table table-hover table-sm">
+    <colgroup>
+        <col width="*">
+        <col width="*">
+        <col width="*">
+        <col width="15%">
+    </colgroup>
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>System</th>
+        <th>Version</th>
+        <th>Created</th>
+        <th>Status</th>
+    </tr>
+    </thead>
+{{range .nodes}}
+    <tbody>
+    <tr data-k8s-node="{{.Name}}">
+        <td scope="row">
+            {{if eq "master" (index .Labels "kubernetes.io/role") }}<span class="badge badge-danger">master</span>{{end}}
+            {{if eq "agent" (index .Labels "kubernetes.io/role") }}<span class="badge badge-primary">node</span>{{end}}
+            {{.Name}}<br>
+            <span class="badge badge-info">{{ index .Labels "beta.kubernetes.io/arch" }}</span>
+            <span class="badge badge-info">{{ index .Labels "beta.kubernetes.io/os" }}</span>
+            <span class="badge badge-secondary">Region: {{ index .Labels "failure-domain.beta.kubernetes.io/region" }}</span>
+            <span class="badge badge-secondary">Zone: {{ index .Labels "failure-domain.beta.kubernetes.io/zone" }}</span>
+        </td>
+        <td scope="row">
+            <strong>{{ index .Labels "beta.kubernetes.io/instance-type" }}</strong><br>
+            CPU: {{.Status.Capacity.Cpu}} cores<br>
+            Memory: {{.Status.Capacity.Memory}}
+        </td>
+        <td>{{.Status.NodeInfo.KubeletVersion}}</td>
+        <td><span data-toggle="tooltip" title="{{.CreationTimestamp.UTC}}">{{timeago .CreationTimestamp.UTC}}</span></td>
+        <td>
+            {{range .Status.Conditions}}
+                {{if eq .Reason "KubeletReady"}}
+                    {{if eq .Type "Ready"}}
+                        <span class="badge badge-success">{{.Type}}</span>
+                    {{else}}
+                        <span class="badge badge-warning">{{.Type}}</span>
+                    {{end}}
+                {{end}}
+            {{end}}
+        </td>
+    </tr>
+    </tbody>
+{{end}}
