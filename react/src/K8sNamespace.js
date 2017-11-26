@@ -70,7 +70,6 @@ class K8sNamespace extends Component {
                     createTeam: team
                 });
             }
-
         });
     }
 
@@ -87,6 +86,9 @@ class K8sNamespace extends Component {
 
     refresh() {
         this.loadNamespaces();
+        this.setState({
+            globalMessage: ""
+        });
     }
 
     deleteNamespace(row) {
@@ -115,10 +117,10 @@ class K8sNamespace extends Component {
             url: "/api/namespace/?" + $.param({"namespace": this.state.selectedNamespace.Name})
         }).done(() => {
             $("#deleteQuestion").modal('hide');
+            this.refresh();
             this.setState({
                 globalMessage: "Namespace \"" + this.state.selectedNamespace.Name + "\" deleted"
             });
-            this.refresh();
         }).always(() => {
             this.setState({
                 deleteButtonState: "",
@@ -205,9 +207,9 @@ class K8sNamespace extends Component {
 
     renderRowOwner(row) {
         if (row.OwnerTeam !== "") {
-            return <span><span className="badge badge-light">Team</span> {row.OwnerTeam}</span>
+            return <span><span className="badge badge-light">Team</span>{row.OwnerTeam}</span>
         } else if (row.OwnerUser !== "") {
-            return <span><span className="badge badge-light">User</span> {row.OwnerUser}</span>
+            return <span><span className="badge badge-light">User</span>{row.OwnerUser}</span>
         }
     }
 
@@ -216,20 +218,33 @@ class K8sNamespace extends Component {
         if (this.state.namespaces) {
             return (
                 <div>
-                    <div className="container-toolbar">
-                        <button type="button" className="btn btn-primary bnt-ns-create" onClick={this.createNamespace.bind(this)}>Create</button>
-                    </div>
-                    <div className={this.state.globalMessage === '' ? null : 'alert alert-success'}>{this.state.globalMessage}</div>
+                    <div className={this.state.globalMessage === '' ? 'alert alert-success invisible' : 'alert alert-success'}>{this.state.globalMessage}</div>
                     <table className="table table-hover table-sm">
+                        <colgroup>
+                            <col width="*" />
+                            <col width="200rem" />
+                            <col width="100rem" />
+                            <col width="200rem" />
+                            <col width="80rem" />
+                        </colgroup>
                         <thead>
                         <tr>
                             <th>Namespace</th>
                             <th>Owner</th>
                             <th>Status</th>
                             <th>Created</th>
-                            <th className="toolbox"></th>
+                            <th className="toolbox">
+                                <button type="button" className="btn btn-primary" onClick={this.createNamespace.bind(this)}>Create</button>
+                            </th>
                         </tr>
                         </thead>
+                        <tfoot>
+                        <tr>
+                            <td className="toolbox" colSpan="5">
+                                <button type="button" className="btn btn-primary" onClick={this.createNamespace.bind(this)}>Create</button>
+                            </td>
+                        </tr>
+                        </tfoot>
                         <tbody>
                         {this.state.namespaces.map((row) =>
                             <tr key={row.Name}>

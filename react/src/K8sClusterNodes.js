@@ -6,6 +6,7 @@ class K8sClusterNodes extends Component {
         super(props);
 
         this.state = {
+            globalMessage: '',
             nodes: [],
         };
 
@@ -40,6 +41,7 @@ class K8sClusterNodes extends Component {
         if (this.state.nodes) {
             return (
                 <div>
+                    <div className={this.state.globalMessage === '' ? 'alert alert-success invisible' : 'alert alert-success'}>{this.state.globalMessage}</div>
                     <table className="table table-hover table-sm">
                         <thead>
                         <tr>

@@ -6,9 +6,30 @@ body {
     display: none;
 }
 
+.invisible {
+    visibility: hidden;
+}
+
 td.toolbox,
 th.toolbox {
     text-align: right;
+    opacity: 0.5;
+}
+
+tr:hover td.toolbox,
+tr:hover th.toolbox {
+    opacity: 1;
+}
+
+thead td.toolbox,
+thead th.toolbox,
+tfoot td.toolbox,
+tfoot th.toolbox {
+    opacity: 1;
+}
+
+button {
+    cursor: pointer;
 }
 
 .container-toolbar {
