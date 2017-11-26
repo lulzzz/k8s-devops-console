@@ -10,7 +10,7 @@ type App struct {
 }
 
 func (c App) accessCheck() (result revel.Result) {
-	return c.Base.accessCheck();
+	return c.Base.accessCheck()
 }
 
 func (c App) User() revel.Result {

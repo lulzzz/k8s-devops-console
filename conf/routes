@@ -11,11 +11,13 @@ GET     /                                       Index.Home
 GET     /login                                  Index.Home
 POST    /login                                  Index.Login
 GET     /logout                                 Index.Logout
+GET     /cluster
 GET     /cluster                                App.Cluster
 GET     /namespace                              App.Namespace
 GET     /user                                   App.User
-GET     /ajax/cluster                           Ajax.Cluster
-GET     /ajax/namespace                         Ajax.Namespace
+POST    /api/_login                             ApiLogin.Login
+GET     /api/_app/config                        ApiApp.Config
+GET     /api/cluster/nodes                      ApiCluster.Nodes
 GET     /api/namespace                          ApiNamespace.List
 DELETE  /api/namespace                          ApiNamespace.Delete
 PUT     /api/namespace                          ApiNamespace.Create

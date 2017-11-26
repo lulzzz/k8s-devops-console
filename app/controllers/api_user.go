@@ -8,9 +8,8 @@ type ApiUser struct {
 	Base
 }
 
-
 func (c ApiUser) accessCheck() (result revel.Result) {
-	return c.Base.accessCheck();
+	return c.Base.accessCheck()
 }
 
 func (c ApiUser) Credentials() revel.Result {

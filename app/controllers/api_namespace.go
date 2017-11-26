@@ -10,29 +10,57 @@ import (
 	"k8s-management/app/toolbox"
 )
 
+type ResultNamespace struct {
+	Name string
+	OwnerTeam string
+	OwnerUser string
+	Status string
+	Created string
+	CreatedAgo string
+}
+
 type ApiNamespace struct {
 	Base
 }
 
 func (c ApiNamespace) accessCheck() (result revel.Result) {
-	return c.Base.accessCheck();
+	return c.Base.accessCheck()
 }
 
 func (c ApiNamespace) List() revel.Result {
 	service := services.Kubernetes{}
-	namespaceList, err := service.NamespaceList()
-
-	if err == nil {
-		c.ViewArgs["namespaces"] = namespaceList
-	} else {
-		c.Log.Error(fmt.Sprintf("K8S error: %v", err))
-		c.Flash.Error(fmt.Sprintf("Communcation error: %v", err))
+	nsList, err := service.NamespaceList()
+	if err != nil {
+		message := fmt.Sprintf("Error: %v", err)
+		c.Response.Status = http.StatusInternalServerError
+		return c.RenderJSON(message)
 	}
 
-	return c.Render()
+	ret := []ResultNamespace{}
+
+	for _, ns := range nsList {
+		row := ResultNamespace{
+			Name: ns.Name,
+			Status: fmt.Sprintf("%v", ns.Status.Phase),
+			Created: ns.CreationTimestamp.UTC().String(),
+			CreatedAgo: revel.TimeAgo(ns.CreationTimestamp.UTC()),
+		};
+
+		if val, ok := ns.Labels["team"]; ok {
+			row.OwnerTeam = val
+		}
+
+		if val, ok := ns.Labels["user"]; ok {
+			row.OwnerUser = val
+		}
+
+		ret = append(ret, row)
+	}
+
+	return c.RenderJSON(ret)
 }
 
-func (c ApiNamespace) Create(nsEnvironment, nsAreaUser, nsAreaTeam, nsApp string) revel.Result {
+func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Result {
 	result := struct {
 		Namespace string
 		Message string
