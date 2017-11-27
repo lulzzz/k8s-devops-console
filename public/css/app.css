@@ -44,6 +44,10 @@ button {
     cursor: pointer;
 }
 
+.modal-body .row {
+    padding-bottom: 1rem;
+}
+
 .container-toolbar-main {
     padding-bottom: 1rem;
 }

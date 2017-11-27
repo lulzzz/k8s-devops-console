@@ -357,10 +357,17 @@ class K8sNamespace extends Component {
                                     </button>
                                 </div>
                                 <div className="modal-body">
-                                    <div className={this.state.deleteMessage === '' ? null : 'alert alert-danger'}>{this.state.deleteMessage}</div>
-                                    Do you really want to delete namespace <strong className="k8s-namespace">{this.state.selectedNamespace.Name}</strong>?
-                                    <br/>
-                                    <input type="text" id="inputNsDeleteConfirm" className="form-control" placeholder="Enter namespace for confirmation" required value={this.state.deleteNamespaceConfirm} onChange={this.handleDeleteNamespaceConfirm.bind(this)} />
+                                    <div className="row">
+                                        <div className="col">
+                                            <div className={this.state.deleteMessage === '' ? null : 'alert alert-danger'}>{this.state.deleteMessage}</div>
+                                            Do you really want to delete namespace <strong className="k8s-namespace">{this.state.selectedNamespace.Name}</strong>?
+                                        </div>
+                                    </div>
+                                    <div className="row">
+                                        <div className="col">
+                                            <input type="text" id="inputNsDeleteConfirm" className="form-control" placeholder="Enter namespace for confirmation" required value={this.state.deleteNamespaceConfirm} onChange={this.handleDeleteNamespaceConfirm.bind(this)} />
+                                        </div>
+                                    </div>
                                 </div>
                                 <div className="modal-footer">
                                     <button type="button" className="btn btn-primary bnt-k8s-namespace-cancel" data-dismiss="modal">Cancel</button>
@@ -404,8 +411,6 @@ class K8sNamespace extends Component {
                                                         )}
                                                     </select>
                                                 </div>
-                                            </div>
-                                            <div>
                                             </div>
                                             <div className="col">
                                                 <label htmlFor="inputNsApp" className="inputNsApp">Application</label>
