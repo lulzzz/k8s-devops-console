@@ -4,13 +4,13 @@ import (
 	"os"
 	"fmt"
 	"errors"
-	"path/filepath"
-	"k8s-management/app"
+	"k8s-devops-console/app"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/api/core/v1"
+	"k8s.io/client-go/rest"
 )
 
 type Kubernetes struct {
@@ -24,25 +24,25 @@ func (k *Kubernetes) homeDir() string {
 	return os.Getenv("USERPROFILE") // windows
 }
 
-func (k *Kubernetes) Client() (*kubernetes.Clientset) {
-	kubeconfig := filepath.Join(k.homeDir(), ".kube", "config")
+func (k *Kubernetes) Client() (clientset *kubernetes.Clientset) {
+	var err error
+	var config *rest.Config
 
-	// use the current context in kubeconfig
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
-	if err != nil {
-		panic(err.Error())
+	if kubeconfig := os.Getenv("KUBECONFIG"); kubeconfig != "" {
+		// KUBECONFIG
+		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
+		if err != nil {
+			panic(err.Error())
+		}
+	} else {
+		// K8S in cluster
+		config, err = rest.InClusterConfig()
+		if err != nil {
+			panic(err.Error())
+		}
 	}
 
-	// creates the in-cluster config
-	/*
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		panic(err.Error())
-	}
-	*/
-
-	// create the clientset
-	clientset, err := kubernetes.NewForConfig(config)
+	clientset, err = kubernetes.NewForConfig(config)
 	if err != nil {
 		panic(err.Error())
 	}

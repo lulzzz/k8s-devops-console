@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"github.com/revel/revel"
-	"k8s-management/app"
-	"k8s-management/app/services"
+	"k8s-devops-console/app"
+	"k8s-devops-console/app/services"
 	"k8s.io/api/core/v1"
-	"k8s-management/app/toolbox"
+	"k8s-devops-console/app/toolbox"
 )
 
 type ResultNamespace struct {
@@ -17,6 +17,7 @@ type ResultNamespace struct {
 	Status string
 	Created string
 	CreatedAgo string
+	Deleteable bool
 }
 
 type ApiNamespace struct {
@@ -39,11 +40,16 @@ func (c ApiNamespace) List() revel.Result {
 	ret := []ResultNamespace{}
 
 	for _, ns := range nsList {
+		if ! c.checkKubernetesNamespaceAccess(ns) {
+			continue;
+		}
+
 		row := ResultNamespace{
 			Name: ns.Name,
 			Status: fmt.Sprintf("%v", ns.Status.Phase),
 			Created: ns.CreationTimestamp.UTC().String(),
 			CreatedAgo: revel.TimeAgo(ns.CreationTimestamp.UTC()),
+			Deleteable: app.RegexpNamespaceDeleteFilter.MatchString(ns.Name),
 		};
 
 		if val, ok := ns.Labels["team"]; ok {
@@ -129,9 +135,16 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 	service := services.Kubernetes{}
 
 	// check if already exists
-	nsObject, _ := service.NamespaceGet(namespace.Name)
-	if nsObject != nil && nsObject.GetUID() != "" {
-		result.Message = fmt.Sprintf("Namespace \"%s\" already exists", namespace.Name)
+	existingNs, _ := service.NamespaceGet(namespace.Name)
+	if existingNs != nil && existingNs.GetUID() != "" {
+		if existingNsTeam, ok := existingNs.Labels["team"]; ok {
+			result.Message = fmt.Sprintf("Namespace \"%s\" already exists (owned by team \"%s\")", namespace.Name, existingNsTeam)
+		} else if existingNsUser, ok := existingNs.Labels["user"]; ok {
+			result.Message = fmt.Sprintf("Namespace \"%s\" already exists (owned by user \"%s\")", namespace.Name, existingNsUser)
+		} else {
+			result.Message = fmt.Sprintf("Namespace \"%s\" already exists", namespace.Name)
+		}
+
 		c.Response.Status = http.StatusForbidden
 		return c.RenderJSON(result)
 	}
@@ -173,6 +186,12 @@ func (c ApiNamespace) Delete(namespace string) revel.Result {
 
 	if ! c.checkKubernetesNamespaceAccess(*nsObject) {
 		result.Message = fmt.Sprintf("Access to namespace \"%s\" denied", result.Namespace)
+		c.Response.Status = http.StatusForbidden
+		return c.RenderJSON(result)
+	}
+
+	if !app.RegexpNamespaceDeleteFilter.MatchString(namespace) {
+		result.Message = fmt.Sprintf("Deletion of namespace \"%s\" denied", result.Namespace)
 		c.Response.Status = http.StatusForbidden
 		return c.RenderJSON(result)
 	}

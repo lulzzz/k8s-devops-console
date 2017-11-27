@@ -17,7 +17,6 @@ const (
 	NAMESPACE_ENVIRONMENTS = "dev,test,int,load,prod,team,user"
 	NAMESPACE_TEAM   = `^[a-zA-Z0-9]{3,}$`
 	NAMESPACE_APP    = `^[a-zA-Z0-9]{3,}$`
-	NAMESPACE_FILTER = `^(dev|test|int|load|prod|team|user)-([a-zA-Z0-9]+\-[a-zA-Z0-9]+|[a-zA-Z0-9]+)$`
 )
 
 var (
@@ -25,6 +24,7 @@ var (
 	RegexpNamespaceTeam *regexp.Regexp
 	RegexpNamespaceApp *regexp.Regexp
 	RegexpNamespaceFilter *regexp.Regexp
+	RegexpNamespaceDeleteFilter *regexp.Regexp
 	NamespaceEnvironments []string
 	NamespaceFilterUser string
 	NamespaceFilterTeam string
@@ -69,7 +69,8 @@ var HeaderFilter = func(c *revel.Controller, fc []revel.Filter) {
 }
 
 func InitConfig() {
-	RegexpNamespaceFilter = regexp.MustCompile(revel.Config.StringDefault("k8s.namespace.filter", NAMESPACE_FILTER))
+	RegexpNamespaceFilter = regexp.MustCompile(revel.Config.StringDefault("k8s.namespace.filter.access", "^.*$"))
+	RegexpNamespaceDeleteFilter = regexp.MustCompile(revel.Config.StringDefault("k8s.namespace.filter.delete", "^.*$"))
 	RegexpNamespaceTeam = regexp.MustCompile(revel.Config.StringDefault("k8s.namespace.validation.team", NAMESPACE_TEAM))
 	RegexpNamespaceApp = regexp.MustCompile(revel.Config.StringDefault("k8s.namespace.validation.app", NAMESPACE_APP))
 	NamespaceFilterUser = revel.Config.StringDefault("k8s.namespace.filter.user", `^user-%s-`)

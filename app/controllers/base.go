@@ -5,9 +5,9 @@ import (
 	"regexp"
 	"strings"
 	"github.com/revel/revel"
-	"k8s-management/app/models"
+	"k8s-devops-console/app/models"
 	"k8s.io/api/core/v1"
-	"k8s-management/app"
+	"k8s-devops-console/app"
 	"net/http"
 	"errors"
 )
@@ -30,7 +30,13 @@ func (c Base) getUser() (user *models.User) {
 	}
 	if username, ok := c.Session["user"]; ok {
 		teams := []models.Team{}
-		teams = append(teams, models.Team{Name: "admin"})
+
+		if username == "admin" {
+			teams = append(teams, models.Team{Name: "admin"})
+			teams = append(teams, models.Team{Name: "user"})
+		} else {
+			teams = append(teams, models.Team{Name: "user"})
+		}
 		user = &models.User{Username:username, Teams:teams}
 	}
 	c.ViewArgs["user"] = user

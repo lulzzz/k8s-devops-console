@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"github.com/revel/revel"
-	"k8s-management/app/services"
+	"k8s-devops-console/app/services"
 	"github.com/dustin/go-humanize"
 )
 

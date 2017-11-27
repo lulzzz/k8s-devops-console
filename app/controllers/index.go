@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/revel/revel"
-	"k8s-management/app/routes"
+	"k8s-devops-console/app/routes"
 )
 
 type Index struct {
@@ -19,6 +19,9 @@ func (c Index) Home() revel.Result {
 
 func (c Index) Login(username, password string) revel.Result {
 	if username == "admin" && password == "admin" {
+		c.Session["user"] = username
+		return c.Redirect(routes.App.Namespace())
+	} else if username == "user" && password == "user" {
 		c.Session["user"] = username
 		return c.Redirect(routes.App.Namespace())
 	} else {

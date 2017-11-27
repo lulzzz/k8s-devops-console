@@ -4,3 +4,4 @@ build-react:
 	rm -rf public/js
 	mkdir -p public/js
 	cp react/build/static/js/* public/js
+	touch public/js/.gitkeep

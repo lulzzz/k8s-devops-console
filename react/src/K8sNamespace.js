@@ -16,8 +16,10 @@ class K8sNamespace extends Component {
             selectedNamespace: [],
             namespacePreview: "",
             globalMessage: "",
+            deleteMessage: "",
             deleteButtonState: "",
             deleteButtonText: "Delete namespace",
+            deleteNamespaceConfirm: "",
             createEnvironment: "user",
             createUser: "",
             createTeam: "",
@@ -106,10 +108,11 @@ class K8sNamespace extends Component {
             return
         }
 
-        let oldButtonText = this.state.createButtonText;
+        let oldButtonText = this.state.deleteButtonText;
         this.setState({
             deleteButtonState: "disabled",
-            deleteButtonText: "Deleting..."
+            deleteButtonText: "Deleting...",
+            deleteMessage: ""
         });
 
         $.ajax({
@@ -121,6 +124,12 @@ class K8sNamespace extends Component {
             this.setState({
                 globalMessage: "Namespace \"" + this.state.selectedNamespace.Name + "\" deleted"
             });
+        }).fail((data) => {
+            if (data.responseJSON && data.responseJSON.Message) {
+                this.setState({
+                    deleteMessage: data.responseJSON.Message
+                });
+            }
         }).always(() => {
             this.setState({
                 deleteButtonState: "",
@@ -133,6 +142,12 @@ class K8sNamespace extends Component {
         setTimeout(() => {
             $("#createQuestion").modal('show')
         }, 200);
+    }
+
+    handleDeleteNamespaceConfirm(event) {
+        this.setState({
+            deleteNamespaceConfirm: event.target.value
+        });
     }
 
     doCreateNamespace() {
@@ -213,6 +228,16 @@ class K8sNamespace extends Component {
         }
     }
 
+    renderDeleteButtonState() {
+        if (this.state.deleteButtonState !== "") {
+            return this.state.deleteButtonState;
+        }
+
+        if (this.state.deleteNamespaceConfirm !== this.state.selectedNamespace.Name) {
+            return "disabled";
+        }
+    }
+
     render() {
         let self = this;
         if (this.state.namespaces) {
@@ -223,16 +248,16 @@ class K8sNamespace extends Component {
                         <colgroup>
                             <col width="*" />
                             <col width="200rem" />
-                            <col width="100rem" />
                             <col width="200rem" />
+                            <col width="100rem" />
                             <col width="80rem" />
                         </colgroup>
                         <thead>
                         <tr>
                             <th>Namespace</th>
                             <th>Owner</th>
-                            <th>Status</th>
                             <th>Created</th>
+                            <th>Status</th>
                             <th className="toolbox">
                                 <button type="button" className="btn btn-primary" onClick={this.createNamespace.bind(this)}>Create</button>
                             </th>
@@ -252,6 +277,7 @@ class K8sNamespace extends Component {
                                 <td>
                                     {this.renderRowOwner(row)}
                                 </td>
+                                <td><div title={row.Created}>{row.CreatedAgo}</div></td>
                                 <td>
                                     {(() => {
                                         switch (row.Status) {
@@ -264,14 +290,17 @@ class K8sNamespace extends Component {
                                         }
                                     })()}
                                 </td>
-                                <td><div title={row.Created}>{row.CreatedAgo}</div></td>
                                 <td className="toolbox">
                                     {(() => {
-                                        switch (row.Status) {
-                                            case "Terminating":
-                                                return <button type="button" className="btn btn-danger" disabled>Delete</button>;
-                                            default:
-                                                return <button type="button" className="btn btn-danger" onClick={self.deleteNamespace.bind(self, row)}>Delete</button>;
+                                        if (row.Deleteable) {
+                                            switch (row.Status) {
+                                                case "Terminating":
+                                                    return <button type="button" className="btn btn-danger"
+                                                                   disabled>Delete</button>;
+                                                default:
+                                                    return <button type="button" className="btn btn-danger"
+                                                                   onClick={self.deleteNamespace.bind(self, row)}>Delete</button>;
+                                            }
                                         }
                                     })()}
 
@@ -291,11 +320,14 @@ class K8sNamespace extends Component {
                                     </button>
                                 </div>
                                 <div className="modal-body">
+                                    <div className={this.state.deleteMessage === '' ? null : 'alert alert-danger'}>{this.state.deleteMessage}</div>
                                     Do you really want to delete namespace <strong className="k8s-namespace">{this.state.selectedNamespace.Name}</strong>?
+                                    <br/>
+                                    <input type="text" id="inputNsDeleteConfirm" className="form-control" placeholder="Enter namespace for confirmation" required value={this.state.deleteNamespaceConfirm} onChange={this.handleDeleteNamespaceConfirm.bind(this)} />
                                 </div>
                                 <div className="modal-footer">
                                     <button type="button" className="btn btn-primary bnt-k8s-namespace-cancel" data-dismiss="modal">Cancel</button>
-                                    <button type="button" className="btn btn-secondary bnt-k8s-namespace-delete" disabled={this.state.deleteButtonState} onClick={this.doDeleteNamespace.bind(this)}>{this.state.deleteButtonText}</button>
+                                    <button type="button" className="btn btn-secondary bnt-k8s-namespace-delete" disabled={this.renderDeleteButtonState()} onClick={this.doDeleteNamespace.bind(this)}>{this.state.deleteButtonText}</button>
                                 </div>
                             </div>
                         </div>
