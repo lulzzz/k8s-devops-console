@@ -276,8 +276,8 @@ class K8sNamespace extends Component {
         if (namespaces) {
             return (
                 <div>
-                    <div className={this.state.globalMessage === '' ? 'alert alert-success invisible' : 'alert alert-success'}>{this.state.globalMessage}</div>
-                    <div className="container-toolbar">
+                    <div className="container-toolbar-main">
+                        <div className={this.state.globalMessage === '' ? 'alert alert-success invisible' : 'alert alert-success'}>{this.state.globalMessage}</div>
                         <input type="text" className="form-control search-input" placeholder="Search" value={this.state.searchValue} onChange={this.handleSearchChange.bind(this)} />
                         <div class="clearfix"></div>
                     </div>

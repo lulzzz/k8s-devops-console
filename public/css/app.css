@@ -44,13 +44,17 @@ button {
     cursor: pointer;
 }
 
-.container-toolbar {
-    text-align: right;
+.container-toolbar-main {
     padding-bottom: 1rem;
 }
 
-.container-toolbar .search-input {
+.container-toolbar-main .search-input {
     float: right;
+}
+
+.container-toolbar {
+    text-align: right;
+    padding-bottom: 1rem;
 }
 
 .spinner-wrapper {
