@@ -7,6 +7,7 @@ class K8sClusterNodes extends Component {
 
         this.state = {
             globalMessage: '',
+            searchValue: '',
             nodes: [],
         };
 
@@ -19,10 +20,6 @@ class K8sClusterNodes extends Component {
         $.get({
             url: '/api/cluster/nodes'
         }).done((data) => {
-            data = data.sort(function(a,b) {
-                return a.Name >= b.Name;
-            });
-
             this.setState({
                 nodes: data
             });
@@ -37,11 +34,44 @@ class K8sClusterNodes extends Component {
         this.loadNodes();
     }
 
+    handleSearchChange(event) {
+        this.setState({
+            searchValue: event.target.value
+        });
+    }
+
+    getNodes() {
+        let ret = [];
+        if (this.state.searchValue !== "") {
+            let term =this.state.searchValue;
+            ret = this.state.nodes.filter((row) => {
+                if (row.Name.includes(term)) {
+                    return true;
+                }
+
+                return false;
+            });
+        } else {
+            ret = this.state.nodes;
+        }
+
+        ret = ret.sort(function(a,b) {
+            return a.Name >= b.Name;
+        });
+
+        return ret;
+    }
+
     render() {
-        if (this.state.nodes) {
+        let nodes = this.getNodes();
+        if (nodes) {
             return (
                 <div>
                     <div className={this.state.globalMessage === '' ? 'alert alert-success invisible' : 'alert alert-success'}>{this.state.globalMessage}</div>
+                    <div className="container-toolbar">
+                        <input type="text" className="form-control search-input" placeholder="Search" value={this.state.searchValue} onChange={this.handleSearchChange.bind(this)} />
+                        <div class="clearfix"></div>
+                    </div>
                     <table className="table table-hover table-sm">
                         <thead>
                         <tr>
@@ -53,7 +83,7 @@ class K8sClusterNodes extends Component {
                         </tr>
                         </thead>
                         <tbody>
-                        {this.state.nodes.map((row) =>
+                        {nodes.map((row) =>
                             <tr key={row.Name} className={row.Role === 'master' ? 'table-warning' : null}>
                                 <td>
                                     <span

@@ -10,6 +10,18 @@ body {
     visibility: hidden;
 }
 
+.search-input {
+    width: 5rem;
+    -webkit-transition: width 0.5s ease-in-out;
+    -moz-transition:width 0.5s ease-in-out;
+    -o-transition: width 0.5s ease-in-out;
+    transition: width 0.5s ease-in-out;
+}
+.search-input:focus,
+.search-input:not([value=""]) {
+    width: 15rem;
+}
+
 td.toolbox,
 th.toolbox {
     text-align: right;
@@ -35,6 +47,10 @@ button {
 .container-toolbar {
     text-align: right;
     padding-bottom: 1rem;
+}
+
+.container-toolbar .search-input {
+    float: right;
 }
 
 .spinner-wrapper {

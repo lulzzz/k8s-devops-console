@@ -16,6 +16,7 @@ class K8sNamespace extends Component {
             selectedNamespace: [],
             namespacePreview: "",
             globalMessage: "",
+            searchValue: "",
             deleteMessage: "",
             deleteButtonState: "",
             deleteButtonText: "Delete namespace",
@@ -38,11 +39,6 @@ class K8sNamespace extends Component {
         $.get({
             url: '/api/namespace'
         }).done((data) => {
-
-            data = data.sort(function(a,b) {
-                return a.Name >= b.Name;
-            });
-
             this.setState({
                 namespaces: data
             });
@@ -238,12 +234,53 @@ class K8sNamespace extends Component {
         }
     }
 
+    handleSearchChange(event) {
+        this.setState({
+            searchValue: event.target.value
+        });
+    }
+
+    getNamespaces() {
+        let ret = [];
+        if (this.state.searchValue !== "") {
+            let term =this.state.searchValue;
+            ret = this.state.namespaces.filter((row) => {
+                if (row.Name.includes(term)) {
+                    return true;
+                }
+
+                if (row.OwnerTeam.includes(term)) {
+                    return true;
+                }
+
+                if (row.OwnerUser.includes(term)) {
+                    return true;
+                }
+
+                return false;
+            });
+        } else {
+            ret = this.state.namespaces;
+        }
+
+        ret = ret.sort(function(a,b) {
+            return a.Name >= b.Name;
+        });
+
+        return ret;
+    }
+
     render() {
         let self = this;
-        if (this.state.namespaces) {
+        let namespaces = this.getNamespaces();
+        if (namespaces) {
             return (
                 <div>
                     <div className={this.state.globalMessage === '' ? 'alert alert-success invisible' : 'alert alert-success'}>{this.state.globalMessage}</div>
+                    <div className="container-toolbar">
+                        <input type="text" className="form-control search-input" placeholder="Search" value={this.state.searchValue} onChange={this.handleSearchChange.bind(this)} />
+                        <div class="clearfix"></div>
+                    </div>
                     <table className="table table-hover table-sm">
                         <colgroup>
                             <col width="*" />
@@ -271,7 +308,7 @@ class K8sNamespace extends Component {
                         </tr>
                         </tfoot>
                         <tbody>
-                        {this.state.namespaces.map((row) =>
+                        {namespaces.map((row) =>
                             <tr key={row.Name}>
                                 <td>{row.Name}</td>
                                 <td>
