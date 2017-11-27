@@ -1,3 +1,6 @@
 test-results/
 tmp/
 routes/
+/public/js/main.*.js
+/public/js/main.*.js.map
+/app/views/react.html
