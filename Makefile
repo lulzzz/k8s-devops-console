@@ -1,3 +1,6 @@
+run: build-react
+	revel run k8s-devops-console
+
 build-react:
 	sh -c "cd react; npm run build"
 	cp react/build/index.html app/views/react.html
