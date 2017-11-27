@@ -27,6 +27,7 @@ GET     /api/user/credentials                   ApiUser.Credentials
 GET     /favicon.ico                            404
 
 # Map static resources from the /app/public folder to the /public path
+GET     /static/*filepath                       Static.Serve("public")
 GET     /public/*filepath                       Static.Serve("public")
 
 # Catch all, this will route any request into the controller path

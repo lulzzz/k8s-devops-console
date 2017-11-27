@@ -81,11 +81,9 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 
 	// check if environment is allowed
 	if ! toolbox.SliceStringContains(app.NamespaceEnvironments, nsEnvironment) {
-		if ! app.RegexpNamespaceEnv.MatchString(nsEnvironment) {
-			result.Message = fmt.Sprintf("Environment \"%s\" not allowed in this cluster", nsEnvironment)
-			c.Response.Status = http.StatusForbidden
-			return c.RenderJSON(result)
-		}
+		result.Message = fmt.Sprintf("Environment \"%s\" not allowed in this cluster", nsEnvironment)
+		c.Response.Status = http.StatusForbidden
+		return c.RenderJSON(result)
 	}
 
 	switch (nsEnvironment) {
