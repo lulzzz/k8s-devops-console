@@ -9,7 +9,8 @@ module:testrunner
 
 GET     /                                       Index.Home
 GET     /login                                  Index.Home
-POST    /login                                  Index.Login
+POST    /login                                  Index.OAuthStart
+GET     /oauth                                  Index.OAuthAuthorize
 GET     /logout                                 Index.Logout
 GET     /cluster
 GET     /cluster                                App.Cluster

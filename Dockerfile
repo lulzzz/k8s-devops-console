@@ -6,12 +6,15 @@ RUN set -x \
     && go get -u github.com/revel/cmd/revel \
     && go get -u k8s.io/client-go/... \
     && go get -u k8s.io/apimachinery/... \
-    && go get -u github.com/dustin/go-humanize
+    && go get -u golang.org/x/oauth2 \
+    && go get -u github.com/dustin/go-humanize \
+    && go get -u cloud.google.com/go/compute/metadata
+RUN go get -u github.com/google/go-github/github
 
 #############################################
-# BUILD REACT APP
+# GET/CACHE NPM DEPS
 #############################################
-FROM node:alpine as frontend
+FROM node:alpine as npm-dependencies
 WORKDIR /app
 # get npm modules (cache)
 COPY ./react/package.json /app/react/
@@ -20,8 +23,13 @@ RUN set -x \
     && cd /app/react \
     && npm install
 
+#############################################
+# BUILD REACT APP
+#############################################
+FROM node:alpine as frontend
 # Copy app and build
 COPY ./ /app
+COPY --from=npm-dependencies /app/react/node_modules/ /app/react/node_modules/
 RUN set -x \
     && cd /app/react/ \
     && npm run build \
@@ -38,13 +46,19 @@ FROM golang as backend
 COPY --from=go-dependencies /go /go
 COPY --from=frontend /app /go/src/k8s-devops-console
 RUN set -x \
-    && revel build k8s-devops-console /app
+    && revel build k8s-devops-console /app prod \
+    && cp /go/src/k8s-devops-console/docker/entrypoint.sh /app/entrypoint.sh \
+    && chmod +x /app/entrypoint.sh \
+    && rm -rf /app/src/k8s-devops-console/tests
 
 #############################################
 # FINAL IMAGE
 #############################################
 FROM alpine
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache \
+        libc6-compat \
+    	ca-certificates
 COPY --from=backend /app/ /app/
 EXPOSE 9000
+ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["/app/run.sh"]

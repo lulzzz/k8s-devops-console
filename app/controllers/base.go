@@ -24,6 +24,11 @@ func (c Base) accessCheck() (result revel.Result) {
 	return
 }
 
+func (c Base) setUser(user models.User) {
+	c.ViewArgs["user"] = user
+	c.Session["user"] = user.Username
+}
+
 func (c Base) getUser() (user *models.User) {
 	if c.ViewArgs["user"] != nil {
 		user = c.ViewArgs["user"].(*models.User)
