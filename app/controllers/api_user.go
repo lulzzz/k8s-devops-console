@@ -13,5 +13,9 @@ func (c ApiUser) accessCheck() (result revel.Result) {
 }
 
 func (c ApiUser) Credentials() revel.Result {
+	for _, path := range revel.ConfPaths {
+		c.Log.Error(path)
+	}
+
 	return c.Render()
 }

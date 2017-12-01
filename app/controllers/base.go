@@ -100,3 +100,13 @@ func (c Base) checkKubernetesNamespaceAccess(namespace v1.Namespace) (bool) {
 
 	return false
 }
+
+func (c Base) renderJSONError(err string) (revel.Result) {
+	c.Response.Status = http.StatusInternalServerError
+	result := struct {
+		Message string
+	}{
+		Message: fmt.Sprintf("Error: %v", err),
+	}
+	return c.RenderJSON(result)
+}

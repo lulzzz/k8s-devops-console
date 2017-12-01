@@ -14,11 +14,7 @@ func (c ApiLogin) accessCheck() (result revel.Result) {
 }
 
 func (c ApiLogin) Login(username, password string) revel.Result {
-	if username == "admin" && password == "admin" {
-		c.Session["user"] = username
-		return c.RenderJSON(true)
-	}
-
+	// TODO
 	c.Response.Status = http.StatusForbidden
 	return c.RenderJSON(false)
 }

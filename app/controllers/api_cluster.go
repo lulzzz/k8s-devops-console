@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"net/http"
 	"github.com/revel/revel"
 	"k8s-devops-console/app/services"
 	"github.com/dustin/go-humanize"
@@ -36,9 +35,8 @@ func (c ApiCluster) Nodes() revel.Result {
 	service := services.Kubernetes{}
 	nodes, err := service.Nodes()
 	if err != nil {
-		message := fmt.Sprintf("Error: %v", err)
-		c.Response.Status = http.StatusInternalServerError
-		return c.RenderJSON(message)
+		c.Log.Error("K8s communication error: %v", err)
+		return c.renderJSONError("Unable to contact cluster")
 	}
 
 	ret := []ResultCluster{}

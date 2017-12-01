@@ -7,12 +7,11 @@ module:testrunner
 # module:jobs
 
 
-GET     /                                       Index.Home
-GET     /login                                  Index.Home
-POST    /login                                  Index.OAuthStart
-GET     /oauth                                  Index.OAuthAuthorize
-GET     /logout                                 Index.Logout
-GET     /cluster
+GET     /                                       Home.Index
+GET     /login                                  Home.Index
+POST    /login                                  Home.OAuthStart
+GET     /oauth                                  Home.OAuthAuthorize
+GET     /logout                                 Home.Logout
 GET     /cluster                                App.Cluster
 GET     /namespace                              App.Namespace
 GET     /user                                   App.User

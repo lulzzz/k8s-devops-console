@@ -8,6 +8,7 @@ type User struct {
 	UserId             int
 	Name               string
 	Username, Password string
+	Email              string
 	Teams              []Team
 }
 

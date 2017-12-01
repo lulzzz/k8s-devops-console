@@ -61,9 +61,13 @@ button {
     padding-bottom: 1rem;
 }
 
+.k8s-namespace {
+    white-space: nowrap;
+}
+
 .spinner-wrapper {
     position: absolute;
-    z-index: 999999;
+    z-index: 999;
     top: 0px;
     left: 0px;
     right: 0px;

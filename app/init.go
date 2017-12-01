@@ -1,16 +1,9 @@
 package app
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 	"github.com/revel/revel"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/github"
-	"golang.org/x/oauth2/microsoft"
-	"golang.org/x/oauth2/facebook"
-	"golang.org/x/oauth2/bitbucket"
-	"golang.org/x/oauth2/google"
 )
 
 var (
@@ -40,9 +33,6 @@ var (
 	NamespaceEnvironments []string
 	NamespaceFilterUser string
 	NamespaceFilterTeam string
-
-	OAuthConfig *oauth2.Config
-	OAuthProvider string
 )
 
 func init() {
@@ -70,7 +60,6 @@ func init() {
 	// revel.OnAppStart(InitDB)
 	// revel.OnAppStart(FillCache)
 	revel.OnAppStart(InitConfig)
-	revel.OnAppStart(InitOAuthConf)
 }
 
 // HeaderFilter adds common security headers
@@ -94,57 +83,6 @@ func InitConfig() {
 
 	envList := revel.Config.StringDefault("k8s.namespace.environments", NAMESPACE_ENVIRONMENTS)
 	NamespaceEnvironments = strings.Split(envList, ",")
-}
-
-func InitOAuthConf() {
-	var clientId, clientSecret string
-	var optExists bool
-	var endpoint oauth2.Endpoint
-
-	OAuthProvider, optExists = revel.Config.String("oauth.provider")
-	if !optExists {
-		panic("No oauth.provider configured")
-	}
-
-	switch OAuthProvider {
-	case "google":
-		endpoint = google.Endpoint
-	case "github":
-		endpoint = github.Endpoint
-	case "live":
-		endpoint = microsoft.LiveConnectEndpoint
-	case "facebook":
-		endpoint = facebook.Endpoint
-	case "bitbucket":
-		endpoint = bitbucket.Endpoint
-	default:
-		panic(fmt.Sprintf("oauth.provider \"%s\" is not valid", OAuthProvider))
-	}
-
-	if val, exists := revel.Config.String("oauth.endpoint.auth"); exists {
-		endpoint.AuthURL = val
-	}
-
-	if val, exists := revel.Config.String("oauth.endpoint.token"); exists {
-		endpoint.TokenURL = val
-	}
-
-	clientId, optExists = revel.Config.String("oauth.client.id")
-	if !optExists {
-		panic("No oauth.client.id configured")
-	}
-
-	clientSecret, optExists = revel.Config.String("oauth.client.secret")
-	if !optExists {
-		panic("No oauth.client.secret configured")
-	}
-
-	OAuthConfig = &oauth2.Config{
-		ClientID:     clientId,
-		ClientSecret: clientSecret,
-		Endpoint: endpoint,
-		Scopes: []string{},
-	}
 }
 
 //func ExampleStartupScript() {

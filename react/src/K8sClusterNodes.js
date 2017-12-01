@@ -1,12 +1,16 @@
 import React, { Component } from 'react';
 import $ from 'jquery';
 
+import Spinner from './Spinner';
+
 class K8sClusterNodes extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
+            isStartup: true,
             globalMessage: '',
+            globalError: '',
             searchValue: '',
             nodes: [],
         };
@@ -21,7 +25,18 @@ class K8sClusterNodes extends Component {
             url: '/api/cluster/nodes'
         }).done((data) => {
             this.setState({
-                nodes: data
+                nodes: data,
+                globalError: ''
+            });
+        }).fail((data) => {
+            if (data.responseJSON && data.responseJSON.Message) {
+                this.setState({
+                    globalError: data.responseJSON.Message
+                });
+            }
+        }).always(() => {
+            this.setState({
+                isStartup: false
             });
         });
     }
@@ -63,10 +78,17 @@ class K8sClusterNodes extends Component {
     }
 
     render() {
+        if (this.state.globalError) {
+            return (
+                <div className="alert alert-danger">{this.state.globalError}</div>
+            )
+        }
+
         let nodes = this.getNodes();
         if (nodes) {
             return (
                 <div>
+                    <Spinner active={this.state.isStartup}/>
                     <div className="container-toolbar-main">
                         <div className={this.state.globalMessage === '' ? 'alert alert-success invisible' : 'alert alert-success'}>{this.state.globalMessage}</div>
                         <input type="text" className="form-control search-input" placeholder="Search" value={this.state.searchValue} onChange={this.handleSearchChange.bind(this)} />

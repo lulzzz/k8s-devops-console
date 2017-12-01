@@ -32,9 +32,8 @@ func (c ApiNamespace) List() revel.Result {
 	service := services.Kubernetes{}
 	nsList, err := service.NamespaceList()
 	if err != nil {
-		message := fmt.Sprintf("Error: %v", err)
-		c.Response.Status = http.StatusInternalServerError
-		return c.RenderJSON(message)
+		c.Log.Error("K8s communication error: %v", err)
+		return c.renderJSONError("Unable to contact cluster")
 	}
 
 	ret := []ResultNamespace{}
