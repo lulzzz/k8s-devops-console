@@ -45,18 +45,16 @@ class K8sNamespace extends Component {
         }).done((data) => {
             this.setState({
                 namespaces: data,
-                globalError: ''
+                globalError: '',
+                isStartup: false
             });
         }).fail((data) => {
             if (data.responseJSON && data.responseJSON.Message) {
                 this.setState({
-                    globalError: data.responseJSON.Message
+                    globalError: data.responseJSON.Message,
+                    isStartup: false
                 });
             }
-        }).always(() => {
-            this.setState({
-                isStartup: false
-            });
         });
     }
 
@@ -106,7 +104,8 @@ class K8sNamespace extends Component {
 
     deleteNamespace(row) {
         this.setState({
-           selectedNamespace: row
+            selectedNamespace: row,
+            deleteNamespaceConfirm: ""
         });
 
         setTimeout(() => {
@@ -128,7 +127,7 @@ class K8sNamespace extends Component {
 
         $.ajax({
             type: 'DELETE',
-            url: "/api/namespace/?" + $.param({"namespace": this.state.selectedNamespace.Name})
+            url: "/api/namespace?" + $.param({"namespace": this.state.selectedNamespace.Name})
         }).done(() => {
             $("#deleteQuestion").modal('hide');
             this.refresh();
@@ -150,6 +149,10 @@ class K8sNamespace extends Component {
     }
 
     createNamespace() {
+        this.setState({
+            createApp: "",
+        });
+
         setTimeout(() => {
             $("#createQuestion").modal('show')
         }, 200);
@@ -162,7 +165,7 @@ class K8sNamespace extends Component {
     }
 
     doCreateNamespace() {
-        let oldButtonText = this.state.deleteButtonText;
+        let oldButtonText = this.state.createButtonText;
         this.setState({
             createButtonState: "disabled",
             createButtonText: "Saving...",
@@ -178,10 +181,6 @@ class K8sNamespace extends Component {
             }
         }).done((data) => {
             $("#createQuestion").modal('hide');
-
-            this.setState({
-                createApp: "",
-            });
 
             if (data && data.Namespace) {
                 this.setState({
@@ -232,7 +231,9 @@ class K8sNamespace extends Component {
     }
 
     renderRowOwner(row) {
-        if (row.OwnerTeam !== "") {
+        if (row.Name.match(/^user\-[^-]+\-.*/i)) {
+            return <span><span className="badge badge-light">Personal Namespace</span></span>
+        } else if (row.OwnerTeam !== "") {
             return <span><span className="badge badge-light">Team</span>{row.OwnerTeam}</span>
         } else if (row.OwnerUser !== "") {
             return <span><span className="badge badge-light">User</span>{row.OwnerUser}</span>

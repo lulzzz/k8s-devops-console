@@ -20,7 +20,9 @@ GET     /api/_app/config                        ApiApp.Config
 GET     /api/cluster/nodes                      ApiCluster.Nodes
 GET     /api/namespace                          ApiNamespace.List
 DELETE  /api/namespace                          ApiNamespace.Delete
+POST    /api/namespace/delete                   ApiNamespace.Delete
 PUT     /api/namespace                          ApiNamespace.Create
+POST    /api/namespace/create                   ApiNamespace.Create
 GET     /api/user/credentials                   ApiUser.Credentials
 
 # Ignore favicon requests

@@ -26,18 +26,16 @@ class K8sClusterNodes extends Component {
         }).done((data) => {
             this.setState({
                 nodes: data,
-                globalError: ''
+                globalError: '',
+                isStartup: false
             });
         }).fail((data) => {
             if (data.responseJSON && data.responseJSON.Message) {
                 this.setState({
-                    globalError: data.responseJSON.Message
+                    globalError: data.responseJSON.Message,
+                    isStartup: false
                 });
             }
-        }).always(() => {
-            this.setState({
-                isStartup: false
-            });
         });
     }
 

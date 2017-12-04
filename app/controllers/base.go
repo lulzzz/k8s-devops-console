@@ -110,3 +110,8 @@ func (c Base) renderJSONError(err string) (revel.Result) {
 	}
 	return c.RenderJSON(result)
 }
+
+func (c Base) auditLog(msg string, ctx ...interface{}) {
+	msg = fmt.Sprintf("[AUDIT] User(%s): %s", c.getUser().Username, msg)
+	c.Log.Error(msg, ctx...)
+}
