@@ -127,7 +127,7 @@ class K8sNamespace extends Component {
 
         $.ajax({
             type: 'DELETE',
-            url: "/api/namespace?" + $.param({"namespace": this.state.selectedNamespace.Name})
+            url: "/api/namespace/" + encodeURI(this.state.selectedNamespace.Name)
         }).done(() => {
             $("#deleteQuestion").modal('hide');
             this.refresh();

@@ -19,11 +19,9 @@ POST    /api/_login                             ApiLogin.Login
 GET     /api/_app/config                        ApiApp.Config
 GET     /api/cluster/nodes                      ApiCluster.Nodes
 GET     /api/namespace                          ApiNamespace.List
-DELETE  /api/namespace                          ApiNamespace.Delete
-POST    /api/namespace/delete                   ApiNamespace.Delete
+DELETE  /api/namespace/:namespace               ApiNamespace.Delete
 PUT     /api/namespace                          ApiNamespace.Create
-POST    /api/namespace/create                   ApiNamespace.Create
-GET     /api/user/credentials                   ApiUser.Credentials
+GET     /api/user/kubeconfig                    ApiUser.Kubeconfig
 
 # Ignore favicon requests
 GET     /favicon.ico                            404
