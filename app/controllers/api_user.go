@@ -12,10 +12,8 @@ func (c ApiUser) accessCheck() (result revel.Result) {
 	return c.Base.accessCheck()
 }
 
-func (c ApiUser) Credentials() revel.Result {
-	for _, path := range revel.ConfPaths {
-		c.Log.Error(path)
-	}
-
+func (c ApiUser) Kubeconfig() revel.Result {
+	c.Response.ContentType = "application/json"
+	c.Response.Out.Header().Set("Content-Disposition", "attachment; filename=\"kubeconfig.json\"")
 	return c.Render()
 }
