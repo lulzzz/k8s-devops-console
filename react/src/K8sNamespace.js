@@ -64,14 +64,8 @@ class K8sNamespace extends Component {
     }
 
     componentDidMount() {
-        this.loadNamespaces();
         this.loadConfig();
-    }
-
-    componentWillMount(){
-        window.k8sNamespaces = (data) => {
-            this.loadNamespaces()
-        };
+        this.loadNamespaces();
     }
 
     refresh() {

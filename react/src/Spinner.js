@@ -9,7 +9,6 @@ class Spinner extends Component {
         return (
             <div className={this.props.active ? 'spinner-wrapper' : 'spinner-wrapper hidden'}>
                 <div className="spinner">
-                    {this.props.active}
                     <div className="rect1"></div>
                     <div className="rect2"></div>
                     <div className="rect3"></div>
