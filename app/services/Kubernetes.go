@@ -11,6 +11,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
+	v12 "k8s.io/api/rbac/v1"
 )
 
 type Kubernetes struct {
@@ -89,13 +90,73 @@ func (k *Kubernetes) NamespaceCreate(namespace v1.Namespace) (error) {
 	return err
 }
 
-func (k *Kubernetes) NamespaceDelete(name string) (error) {
-	if err := k.namespaceValidate(name); err != nil {
+func (k *Kubernetes) NamespaceDelete(namespace string) (error) {
+	if err := k.namespaceValidate(namespace); err != nil {
 		return err
 	}
 
 	opts := metav1.DeleteOptions{}
-	return k.Client().CoreV1().Namespaces().Delete(name, &opts)
+	return k.Client().CoreV1().Namespaces().Delete(namespace, &opts)
+}
+
+func (k *Kubernetes) RoleBindingCreateNamespaceUser(namespace, user string) (roleBinding *v12.RoleBinding, error error) {
+	roleBindName := fmt.Sprintf("user:%s", user)
+
+	getOpts := metav1.GetOptions{}
+	if rb, _ := k.Client().RbacV1().RoleBindings(namespace).Get(roleBindName, getOpts); rb != nil && rb.GetUID() != "" {
+		deleteOpts := metav1.DeleteOptions{}
+		k.Client().RbacV1().RoleBindings(namespace).Delete(roleBindName, &deleteOpts)
+	}
+
+	annotiations := map[string]string{}
+	annotiations["user"] = user
+
+	subject := v12.Subject{}
+	subject.Name = user
+	subject.Kind = "User"
+
+	role := v12.RoleRef{}
+	role.Kind = "ClusterRole"
+	role.Name = "admin"
+
+	roleBinding = &v12.RoleBinding{}
+	roleBinding.SetAnnotations(annotiations)
+	roleBinding.SetName(roleBindName)
+	roleBinding.SetNamespace(namespace)
+	roleBinding.RoleRef = role
+	roleBinding.Subjects = []v12.Subject{subject}
+
+	return k.Client().RbacV1().RoleBindings(namespace).Create(roleBinding)
+}
+
+func (k *Kubernetes) RoleBindingCreateNamespaceGroup(namespace, group string) (roleBinding *v12.RoleBinding, error error) {
+	roleBindName := fmt.Sprintf("group:%s", group)
+
+	getOpts := metav1.GetOptions{}
+	if rb, _ := k.Client().RbacV1().RoleBindings(namespace).Get(roleBindName, getOpts); rb != nil && rb.GetUID() != "" {
+		deleteOpts := metav1.DeleteOptions{}
+		k.Client().RbacV1().RoleBindings(namespace).Delete(roleBindName, &deleteOpts)
+	}
+
+	annotiations := map[string]string{}
+	annotiations["group"] = group
+
+	subject := v12.Subject{}
+	subject.Name = group
+	subject.Kind = "Group"
+
+	role := v12.RoleRef{}
+	role.Kind = "ClusterRole"
+	role.Name = "admin"
+
+	roleBinding = &v12.RoleBinding{}
+	roleBinding.SetAnnotations(annotiations)
+	roleBinding.SetName(roleBindName)
+	roleBinding.SetNamespace(namespace)
+	roleBinding.RoleRef = role
+	roleBinding.Subjects = []v12.Subject{subject}
+
+	return k.Client().RbacV1().RoleBindings(namespace).Create(roleBinding)
 }
 
 func (k *Kubernetes) namespaceValidate(name string) (err error) {
@@ -105,3 +166,4 @@ func (k *Kubernetes) namespaceValidate(name string) (err error) {
 
 	return
 }
+

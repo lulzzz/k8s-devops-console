@@ -74,6 +74,7 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 		Message: "",
 	}
 
+	roleBinding := "team"
 	username := c.getUser().Username
 
 	if ! app.RegexpNamespaceApp.MatchString(nsApp) {
@@ -110,6 +111,7 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 	case "user":
 		result.Namespace = fmt.Sprintf("user-%s-%s", username, nsApp)
 		labels["user"] = username
+		roleBinding = "user"
 	default:
 		if ! c.checkTeamMembership(nsAreaTeam) {
 			result.Message = fmt.Sprintf("Access to team \"%s\" denied", nsAreaTeam)
@@ -151,6 +153,19 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 	if err := service.NamespaceCreate(namespace); err != nil {
 		result.Message = fmt.Sprintf("Error: %v", err)
 		c.Response.Status = http.StatusInternalServerError
+	}
+
+	switch roleBinding {
+	case "team":
+		if _, err := service.RoleBindingCreateNamespaceGroup(namespace.Name, nsAreaTeam); err != nil {
+			result.Message = fmt.Sprintf("Error: %v", err)
+			c.Response.Status = http.StatusInternalServerError
+		}
+	case "user":
+		if _, err := service.RoleBindingCreateNamespaceUser(namespace.Name, username); err != nil {
+			result.Message = fmt.Sprintf("Error: %v", err)
+			c.Response.Status = http.StatusInternalServerError
+		}
 	}
 
 	c.auditLog(fmt.Sprintf("Namespace \"%s\" created", namespace.Name))
