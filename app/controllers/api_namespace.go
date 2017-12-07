@@ -153,7 +153,7 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 		c.Response.Status = http.StatusInternalServerError
 	}
 
-	c.auditLog("Namespace \"%s\" created", namespace.Name)
+	c.auditLog(fmt.Sprintf("Namespace \"%s\" created", namespace.Name))
 
 	return c.RenderJSON(result)
 }
@@ -200,7 +200,7 @@ func (c ApiNamespace) Delete(namespace string) revel.Result {
 		c.Response.Status = http.StatusInternalServerError
 	}
 
-	c.auditLog("Namespace \"%s\" deleted", nsObject.Name)
+	c.auditLog(fmt.Sprintf("Namespace \"%s\" deleted", nsObject.Name))
 
 	return c.RenderJSON(result)
 }
