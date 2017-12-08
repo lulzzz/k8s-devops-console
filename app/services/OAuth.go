@@ -76,11 +76,11 @@ func (o *OAuth) buildConfig() (config *oauth2.Config) {
 		panic(fmt.Sprintf("oauth.provider \"%s\" is not valid", OAuthProvider))
 	}
 
-	if val, exists := revel.Config.String("oauth.endpoint.auth"); exists {
+	if val, exists := revel.Config.String("oauth.endpoint.auth"); exists && val != "" {
 		endpoint.AuthURL = val
 	}
 
-	if val, exists := revel.Config.String("oauth.endpoint.token"); exists {
+	if val, exists := revel.Config.String("oauth.endpoint.token"); exists && val != "" {
 		endpoint.TokenURL = val
 	}
 
