@@ -10,6 +10,7 @@ type User struct {
 	Username, Password string
 	Email              string
 	Teams              []Team
+	IsAdmin            bool
 }
 
 func (u *User) String() string {
