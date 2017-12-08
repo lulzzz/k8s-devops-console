@@ -29,6 +29,10 @@ class K8sNamespaceModalDelete extends Component {
             type: 'DELETE',
             url: "/api/namespace/" + encodeURI(this.props.namespace.Name)
         }).done(() => {
+            this.setState({
+                confirmNamespace: ""
+            });
+
             if (this.props.callback) {
                 this.props.callback()
             }
@@ -43,6 +47,12 @@ class K8sNamespaceModalDelete extends Component {
                 buttonState: "",
                 buttonText: oldButtonText
             });
+        });
+    }
+
+    componentWillReceiveProps(nextProps) {
+        this.setState({
+            confirmNamespace: ""
         });
     }
 
@@ -63,7 +73,6 @@ class K8sNamespaceModalDelete extends Component {
     }
 
     render() {
-        let self = this;
         return (
             <div>
                 <div className="modal fade" id="deleteQuestion" tabIndex="-1" role="dialog" aria-labelledby="deleteQuestion">
