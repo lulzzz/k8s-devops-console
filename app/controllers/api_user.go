@@ -13,7 +13,7 @@ func (c ApiUser) accessCheck() (result revel.Result) {
 }
 
 func (c ApiUser) Kubeconfig() revel.Result {
-	c.Response.ContentType = "application/json"
-	c.Response.Out.Header().Set("Content-Disposition", "attachment; filename=\"kubeconfig.json\"")
+	c.Response.ContentType = "text/yaml"
+	c.Response.Out.Header().Set("Content-Disposition", "attachment; filename=\"kubeconfig.yaml\"")
 	return c.Render()
 }
