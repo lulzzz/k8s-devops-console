@@ -60,6 +60,7 @@ func init() {
 	// revel.OnAppStart(InitDB)
 	// revel.OnAppStart(FillCache)
 	revel.OnAppStart(InitConfig)
+	revel.OnAppStart(InitTemplateEngine)
 }
 
 // HeaderFilter adds common security headers
@@ -83,6 +84,12 @@ func InitConfig() {
 
 	envList := revel.Config.StringDefault("k8s.namespace.environments", NAMESPACE_ENVIRONMENTS)
 	NamespaceEnvironments = strings.Split(envList, ",")
+}
+
+func InitTemplateEngine() {
+	revel.TemplateFuncs["config"] = func(option string) string {
+		return revel.Config.StringDefault(option, "")
+	}
 }
 
 //func ExampleStartupScript() {
