@@ -20,8 +20,8 @@ const (
 	DEFAULT_NAMESPACE_FILTER_USER = `^user-%s-`
 	DEFAULT_NAMESPACE_FILTER_TEAM = `^team-%s-`
 	NAMESPACE_ENVIRONMENTS = "dev,test,int,load,prod,team,user"
-	NAMESPACE_TEAM   = `^[a-zA-Z0-9]{3,}$`
-	NAMESPACE_APP    = `^[a-zA-Z0-9]{3,}$`
+	NAMESPACE_TEAM = `^[a-zA-Z0-9]{3,}$`
+	NAMESPACE_APP  = `^[a-zA-Z0-9]{3,}$`
 )
 
 var (
@@ -74,21 +74,37 @@ var HeaderFilter = func(c *revel.Controller, fc []revel.Filter) {
 	fc[0](c, fc[1:]) // Execute the next filter stage.
 }
 
-func InitConfig() {
-	RegexpNamespaceFilter = regexp.MustCompile(revel.Config.StringDefault("k8s.namespace.filter.access", DEFAULT_NAMESPACE_FILTER_ACCESS))
-	RegexpNamespaceDeleteFilter = regexp.MustCompile(revel.Config.StringDefault("k8s.namespace.filter.delete", DEFAULT_NAMESPACE_FILTER_DELETE))
-	RegexpNamespaceTeam = regexp.MustCompile(revel.Config.StringDefault("k8s.namespace.validation.team", NAMESPACE_TEAM))
-	RegexpNamespaceApp = regexp.MustCompile(revel.Config.StringDefault("k8s.namespace.validation.app", NAMESPACE_APP))
-	NamespaceFilterUser = revel.Config.StringDefault("k8s.namespace.filter.user", DEFAULT_NAMESPACE_FILTER_USER)
-	NamespaceFilterTeam = revel.Config.StringDefault("k8s.namespace.filter.team", DEFAULT_NAMESPACE_FILTER_TEAM)
+func GetConfigString(key, defaultValue string) (ret string) {
+	ret = defaultValue
 
-	envList := revel.Config.StringDefault("k8s.namespace.environments", NAMESPACE_ENVIRONMENTS)
+	// try to get config
+	if val, exists := revel.Config.String(key); exists && val != "" {
+		return val
+	}
+
+	// try to get config default
+	if val, exists := revel.Config.String(key + ".default"); exists && val != "" {
+		return val
+	}
+
+	return
+}
+
+func InitConfig() {
+	RegexpNamespaceFilter = regexp.MustCompile(GetConfigString("k8s.namespace.filter.access", DEFAULT_NAMESPACE_FILTER_ACCESS))
+	RegexpNamespaceDeleteFilter = regexp.MustCompile(GetConfigString("k8s.namespace.filter.delete", DEFAULT_NAMESPACE_FILTER_DELETE))
+	RegexpNamespaceTeam = regexp.MustCompile(GetConfigString("k8s.namespace.validation.team", NAMESPACE_TEAM))
+	RegexpNamespaceApp = regexp.MustCompile(GetConfigString("k8s.namespace.validation.app", NAMESPACE_APP))
+	NamespaceFilterUser = GetConfigString("k8s.namespace.filter.user", DEFAULT_NAMESPACE_FILTER_USER)
+	NamespaceFilterTeam = GetConfigString("k8s.namespace.filter.team", DEFAULT_NAMESPACE_FILTER_TEAM)
+
+	envList := GetConfigString("k8s.namespace.environments", NAMESPACE_ENVIRONMENTS)
 	NamespaceEnvironments = strings.Split(envList, ",")
 }
 
 func InitTemplateEngine() {
 	revel.TemplateFuncs["config"] = func(option string) string {
-		return revel.Config.StringDefault(option, "")
+		return GetConfigString(option, "")
 	}
 }
 

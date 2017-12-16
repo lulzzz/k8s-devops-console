@@ -36,8 +36,13 @@ class K8sNamespaceModalCreate extends Component {
                nsApp: ""
             });
 
+            let namespace = ""
+            if (data.Namespace) {
+                namespace = data.Namespace;
+            }
+
             if (this.props.callback) {
-                this.props.callback()
+                this.props.callback(namespace)
             }
         }).fail((data) => {
             if (data.responseJSON && data.responseJSON.Message) {
@@ -82,7 +87,7 @@ class K8sNamespaceModalCreate extends Component {
     }
 
     render() {
-        if (this.state.nsTeam == '') {
+        if (this.state.nsTeam === "") {
             if (this.props.config.Teams.length > 0) {
                 this.setState({nsTeam: this.props.config.Teams[0].Name});
             }

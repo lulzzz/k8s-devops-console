@@ -5,7 +5,7 @@ import (
 )
 
 type Team struct {
-	Name               string
+	Name string
 }
 
 func (t *Team) String() string {

@@ -1,0 +1,10 @@
+FROM node:alpine
+WORKDIR /app
+# get npm modules (cache)
+COPY ./react/package.json /app/react/
+COPY ./react/package-lock.json /app/react/
+RUN set -x \
+    && cd /app/react \
+    && npm install
+EXPOSE 3000
+CMD ["npm", "start"]

@@ -15,9 +15,10 @@ import (
 )
 
 type Kubernetes struct {
-
+	clientset *kubernetes.Clientset
 }
 
+// Return path to homedir using HOME and USERPROFILE env vars
 func (k *Kubernetes) homeDir() string {
 	if h := os.Getenv("HOME"); h != "" {
 		return h
@@ -25,32 +26,36 @@ func (k *Kubernetes) homeDir() string {
 	return os.Getenv("USERPROFILE") // windows
 }
 
+// Create cached kubernetes client
 func (k *Kubernetes) Client() (clientset *kubernetes.Clientset) {
 	var err error
 	var config *rest.Config
 
-	if kubeconfig := os.Getenv("KUBECONFIG"); kubeconfig != "" {
-		// KUBECONFIG
-		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
-		if err != nil {
-			panic(err.Error())
+	if k.clientset == nil {
+		if kubeconfig := os.Getenv("KUBECONFIG"); kubeconfig != "" {
+			// KUBECONFIG
+			config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
+			if err != nil {
+				panic(err.Error())
+			}
+		} else {
+			// K8S in cluster
+			config, err = rest.InClusterConfig()
+			if err != nil {
+				panic(err.Error())
+			}
 		}
-	} else {
-		// K8S in cluster
-		config, err = rest.InClusterConfig()
+
+		k.clientset, err = kubernetes.NewForConfig(config)
 		if err != nil {
 			panic(err.Error())
 		}
 	}
 
-	clientset, err = kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	return clientset
+	return k.clientset
 }
 
+// Returns list of (filtered) namespaces
 func (k *Kubernetes) NamespaceList() (nsList map[string]v1.Namespace, err error) {
 	result, err := k.Client().CoreV1().Namespaces().List(metav1.ListOptions{})
 
@@ -66,11 +71,13 @@ func (k *Kubernetes) NamespaceList() (nsList map[string]v1.Namespace, err error)
 	return
 }
 
+// Returns list of nodes
 func (k *Kubernetes) Nodes() (*v1.NodeList, error) {
 	opts := metav1.ListOptions{}
 	return k.Client().CoreV1().Nodes().List(opts)
 }
 
+// Returns one namespace
 func (k *Kubernetes) NamespaceGet(namespace string) (*v1.Namespace, error) {
 	if err := k.namespaceValidate(namespace); err != nil {
 		return nil, err
@@ -80,6 +87,7 @@ func (k *Kubernetes) NamespaceGet(namespace string) (*v1.Namespace, error) {
 	return k.Client().CoreV1().Namespaces().Get(namespace, opts)
 }
 
+// Create one namespace
 func (k *Kubernetes) NamespaceCreate(namespace v1.Namespace) (error) {
 	if err := k.namespaceValidate(namespace.Name); err != nil {
 		return err
@@ -90,6 +98,7 @@ func (k *Kubernetes) NamespaceCreate(namespace v1.Namespace) (error) {
 	return err
 }
 
+// Delete one namespace
 func (k *Kubernetes) NamespaceDelete(namespace string) (error) {
 	if err := k.namespaceValidate(namespace); err != nil {
 		return err
@@ -99,7 +108,8 @@ func (k *Kubernetes) NamespaceDelete(namespace string) (error) {
 	return k.Client().CoreV1().Namespaces().Delete(namespace, &opts)
 }
 
-func (k *Kubernetes) RoleBindingCreateNamespaceUser(namespace, user string) (roleBinding *v12.RoleBinding, error error) {
+// Create rolebinding for user to gain access to namespace
+func (k *Kubernetes) RoleBindingCreateNamespaceUser(namespace, user, roleName string) (roleBinding *v12.RoleBinding, error error) {
 	roleBindName := fmt.Sprintf("user:%s", user)
 
 	getOpts := metav1.GetOptions{}
@@ -117,7 +127,7 @@ func (k *Kubernetes) RoleBindingCreateNamespaceUser(namespace, user string) (rol
 
 	role := v12.RoleRef{}
 	role.Kind = "ClusterRole"
-	role.Name = "admin"
+	role.Name = roleName
 
 	roleBinding = &v12.RoleBinding{}
 	roleBinding.SetAnnotations(annotiations)
@@ -129,7 +139,8 @@ func (k *Kubernetes) RoleBindingCreateNamespaceUser(namespace, user string) (rol
 	return k.Client().RbacV1().RoleBindings(namespace).Create(roleBinding)
 }
 
-func (k *Kubernetes) RoleBindingCreateNamespaceGroup(namespace, group string) (roleBinding *v12.RoleBinding, error error) {
+// Create rolebinding for group to gain access to namespace
+func (k *Kubernetes) RoleBindingCreateNamespaceGroup(namespace, group, roleName string) (roleBinding *v12.RoleBinding, error error) {
 	roleBindName := fmt.Sprintf("group:%s", group)
 
 	getOpts := metav1.GetOptions{}
@@ -147,7 +158,7 @@ func (k *Kubernetes) RoleBindingCreateNamespaceGroup(namespace, group string) (r
 
 	role := v12.RoleRef{}
 	role.Kind = "ClusterRole"
-	role.Name = "admin"
+	role.Name = roleName
 
 	roleBinding = &v12.RoleBinding{}
 	roleBinding.SetAnnotations(annotiations)

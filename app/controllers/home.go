@@ -15,6 +15,8 @@ type Home struct {
 }
 
 func (c Home) Index() revel.Result {
+	c.handleOauthErrors()
+
 	if c.getUser() == nil {
 		return c.Render()
 	} else {
@@ -38,6 +40,10 @@ func (c Home) OAuthStart(username, password string) revel.Result {
 func (c Home) OAuthAuthorize() revel.Result {
 	var user models.User
 	oauth := services.OAuth{}
+
+	if c.handleOauthErrors() {
+		return c.RenderTemplate("Home/Index.html")
+	}
 
 	code := c.Params.Query.Get("code")
 	if code == "" {
@@ -79,6 +85,22 @@ func (c Home) OAuthAuthorize() revel.Result {
 	c.setUser(user)
 
 	return c.Redirect(routes.App.Namespace())
+}
+
+func (c Home) handleOauthErrors() bool {
+	// AzureAD error message
+	if error := c.Params.Query.Get("error"); error != "" {
+		message := error
+
+		if errorDesc := c.Params.Query.Get("error_description"); errorDesc != "" {
+			message = fmt.Sprintf("%s:\n%s", error, errorDesc)
+		}
+
+		c.Validation.Error(message)
+		return true
+	}
+
+	return false
 }
 
 func (c Home) Logout() revel.Result {

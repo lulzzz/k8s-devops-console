@@ -92,7 +92,7 @@ class K8sNamespace extends Component {
     }
 
     renderRowOwner(row) {
-        if (row.Name.match(/^user\-[^-]+\-.*/i)) {
+        if (row.Name.match(/^user-[^-]+-.*/i)) {
             return <span><span className="badge badge-light">Personal Namespace</span></span>
         } else if (row.OwnerTeam !== "") {
             return <span><span className="badge badge-light">Team</span>{row.OwnerTeam}</span>
@@ -101,19 +101,19 @@ class K8sNamespace extends Component {
         }
     }
 
-    handleNamespaceDeletion() {
+    handleNamespaceDeletion(namespace) {
         $("#deleteQuestion").modal('hide');
         this.refresh();
         this.setState({
-            globalMessage: "Namespace \"" + this.state.selectedNamespace.Name + "\" deleted"
+            globalMessage: "Namespace \"" + namespace + "\" deleted"
         });
     }
 
-    handleNamespaceCreation() {
+    handleNamespaceCreation(namespace) {
         $("#createQuestion").modal('hide');
         this.refresh();
         this.setState({
-            globalMessage: "Namespace \"" + this.state.selectedNamespace.Name + "\" created"
+            globalMessage: "Namespace \"" + namespace + "\" created"
         });
     }
 

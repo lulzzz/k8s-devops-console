@@ -74,6 +74,9 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 		Message: "",
 	}
 
+	labelUserKey := app.GetConfigString("k8s.label.user", "user");
+	labelTeamKey := app.GetConfigString("k8s.label.team", "team");
+
 	roleBinding := "team"
 	username := c.getUser().Username
 
@@ -107,10 +110,10 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 		}
 
 		result.Namespace = fmt.Sprintf("team-%s-%s", nsAreaTeam, nsApp)
-		labels["team"] = nsAreaTeam
+		labels[labelTeamKey] = nsAreaTeam
 	case "user":
 		result.Namespace = fmt.Sprintf("user-%s-%s", username, nsApp)
-		labels["user"] = username
+		labels[labelUserKey] = username
 		roleBinding = "user"
 	default:
 		if ! c.checkTeamMembership(nsAreaTeam) {
@@ -120,7 +123,7 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 		}
 
 		result.Namespace = fmt.Sprintf("%s-%s", nsEnvironment, nsApp)
-		labels["team"] = nsAreaTeam
+		labels[labelTeamKey] = nsAreaTeam
 	}
 
 	namespace := v1.Namespace{}
@@ -157,12 +160,14 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 
 	switch roleBinding {
 	case "team":
-		if _, err := service.RoleBindingCreateNamespaceGroup(namespace.Name, nsAreaTeam); err != nil {
+		role := app.GetConfigString("k8s.team.role", "admin")
+		if _, err := service.RoleBindingCreateNamespaceGroup(namespace.Name, nsAreaTeam, role); err != nil {
 			result.Message = fmt.Sprintf("Error: %v", err)
 			c.Response.Status = http.StatusInternalServerError
 		}
 	case "user":
-		if _, err := service.RoleBindingCreateNamespaceUser(namespace.Name, username); err != nil {
+		role := app.GetConfigString("k8s.user.role", "admin")
+		if _, err := service.RoleBindingCreateNamespaceUser(namespace.Name, username, role); err != nil {
 			result.Message = fmt.Sprintf("Error: %v", err)
 			c.Response.Status = http.StatusInternalServerError
 		}

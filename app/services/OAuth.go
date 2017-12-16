@@ -5,6 +5,7 @@ import (
 	"strings"
 	"context"
 	"github.com/revel/revel"
+	"k8s-devops-console/app"
 	"k8s-devops-console/app/models"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
@@ -59,17 +60,27 @@ func (o *OAuth) FetchUserInfo(token *oauth2.Token) (user models.User, error erro
 		user.Email = githubUser.GetEmail()
 		user.IsAdmin = githubUser.GetSiteAdmin()
 	case "azuread":
-		userInfo, err := o.oidcProvider.UserInfo(ctx, oauth2.StaticTokenSource(token))
+		tokenSource := oauth2.StaticTokenSource(token)
+
+		userInfo, err := o.oidcProvider.UserInfo(ctx, tokenSource)
 		if err != nil {
 			error = err
 			return
 		}
 
-		split := strings.SplitN(userInfo.Email, "@", 1)
+		aadUserInfo := struct {
+			Username   string `json:"upn"`
+		}{}
+		if err := userInfo.Claims(&aadUserInfo); err != nil {
+			error = err
+			return
+		}
+
+		split := strings.SplitN(aadUserInfo.Username, "@", 2)
 		user.Username = split[0]
-		user.Email = userInfo.Email
+		user.Email = aadUserInfo.Username
 	default:
-		panic(fmt.Sprintf("oauth.provider \"%s\" is not valid", OAuthProvider))
+		o.error(fmt.Sprintf("oauth.provider \"%s\" is not valid", OAuthProvider))
 	}
 
 	return
@@ -86,7 +97,7 @@ func (o *OAuth) buildConfig() (config *oauth2.Config) {
 
 	o.provider, optExists = revel.Config.String("oauth.provider")
 	if !optExists {
-		panic("No oauth.provider configured")
+		o.error("No oauth.provider configured")
 	}
 
 	switch strings.ToLower(o.provider) {
@@ -98,16 +109,17 @@ func (o *OAuth) buildConfig() (config *oauth2.Config) {
 			aadTenant = val
 		}
 
-		provider, err := oidc.NewProvider(ctx, fmt.Sprintf("https://login.microsoftonline.com/%s/v2.0", aadTenant))
+		provider, err := oidc.NewProvider(ctx, fmt.Sprintf("https://sts.windows.net/%s/", aadTenant))
+		//provider, err := oidc.NewProvider(ctx, fmt.Sprintf("https://login.microsoftonline.com/%s/v2.0", aadTenant))
 		if err != nil {
-			panic(fmt.Sprintf("oauth.provider AzureAD init failed: %s", err))
+			o.error(fmt.Sprintf("oauth.provider AzureAD init failed: %s", err))
 		}
 
 		o.oidcProvider = provider
 		endpoint = provider.Endpoint()
-		scopes = []string{oidc.ScopeOpenID, "profile", "email"}
+		scopes = []string{oidc.ScopeOpenID, "profile", "email", "offline_access"}
 	default:
-		panic(fmt.Sprintf("oauth.provider \"%s\" is not valid", OAuthProvider))
+		o.error(fmt.Sprintf("oauth.provider \"%s\" is not valid", OAuthProvider))
 	}
 
 	if val, exists := revel.Config.String("oauth.endpoint.auth"); exists && val != "" {
@@ -120,12 +132,12 @@ func (o *OAuth) buildConfig() (config *oauth2.Config) {
 
 	clientId, optExists = revel.Config.String("oauth.client.id")
 	if !optExists {
-		panic("No oauth.client.id configured")
+		o.error("No oauth.client.id configured")
 	}
 
 	clientSecret, optExists = revel.Config.String("oauth.client.secret")
 	if !optExists {
-		panic("No oauth.client.secret configured")
+		o.error("No oauth.client.secret configured")
 	}
 
 	config = &oauth2.Config{
@@ -133,7 +145,13 @@ func (o *OAuth) buildConfig() (config *oauth2.Config) {
 		ClientSecret: clientSecret,
 		Endpoint: endpoint,
 		Scopes: scopes,
+		RedirectURL: app.GetConfigString("oauth.redirect.url", ""),
 	}
 
 	return
+}
+
+func (o *OAuth) error(message string) {
+	revel.AppLog.Error(message)
+	panic(message)
 }

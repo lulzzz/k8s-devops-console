@@ -34,7 +34,7 @@ class K8sNamespaceModalDelete extends Component {
             });
 
             if (this.props.callback) {
-                this.props.callback()
+                this.props.callback(this.props.namespace.Name)
             }
         }).fail((data) => {
             if (data.responseJSON && data.responseJSON.Message) {
@@ -51,9 +51,11 @@ class K8sNamespaceModalDelete extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        this.setState({
-            confirmNamespace: ""
-        });
+        if (!this.props.namespace || this.props.namespace.Name !== nextProps.namespace.Name) {
+            this.setState({
+                confirmNamespace: ""
+            });
+        }
     }
 
     handleConfirmNamespace(event) {

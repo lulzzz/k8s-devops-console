@@ -70,7 +70,10 @@ func (c Base) checkKubernetesNamespaceAccess(namespace v1.Namespace) (bool) {
 		return true
 	}
 
-	if val, ok := namespace.Labels["user"]; ok {
+	labelUserKey := app.GetConfigString("k8s.label.user", "user");
+	labelTeamKey := app.GetConfigString("k8s.label.team", "team");
+
+	if val, ok := namespace.Labels[labelUserKey]; ok {
 		if val == user.Username {
 			return true
 		}
@@ -78,7 +81,7 @@ func (c Base) checkKubernetesNamespaceAccess(namespace v1.Namespace) (bool) {
 
 	// ENV namespace (team labels)
 	for _, team := range user.Teams {
-		if val, ok := namespace.Labels["team"]; ok {
+		if val, ok := namespace.Labels[labelTeamKey]; ok {
 			if val == team.Name {
 				return true
 			}
