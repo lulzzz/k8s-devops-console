@@ -21,6 +21,7 @@ class K8sNamespace extends Component {
                 NamespaceEnvironments: []
             },
             selectedNamespace: [],
+            selectedNamespaceDelete: [],
             namespacePreview: "",
             globalMessage: "",
             globalError: "",
@@ -56,6 +57,14 @@ class K8sNamespace extends Component {
             url: '/api/_app/config'
         }).done((data) => {
             if (data) {
+                if (!data.Teams) {
+                    data.Teams = [];
+                }
+
+                if (!data.NamespaceEnvironments) {
+                    data.NamespaceEnvironments = [];
+                }
+
                 this.setState({
                     config: data
                 });
@@ -77,7 +86,7 @@ class K8sNamespace extends Component {
 
     deleteNamespace(row) {
         this.setState({
-            selectedNamespace: row
+            selectedNamespaceDelete: row
         });
 
         setTimeout(() => {
@@ -89,6 +98,12 @@ class K8sNamespace extends Component {
         setTimeout(() => {
             $("#createQuestion").modal('show')
         }, 200);
+    }
+
+    selectNamespace(namespace) {
+        this.setState({
+            selectedNamespace: namespace
+        });
     }
 
     renderRowOwner(row) {
@@ -168,7 +183,7 @@ class K8sNamespace extends Component {
                 <div className="container-toolbar-main">
                     <div className={this.state.globalMessage === '' ? 'alert alert-success invisible' : 'alert alert-success'}>{this.state.globalMessage}</div>
                     <input type="text" className="form-control search-input" placeholder="Search" value={this.state.searchValue} onChange={this.handleSearchChange.bind(this)} />
-                    <div class="clearfix"></div>
+                    <div className="clearfix"></div>
                 </div>
                 <table className="table table-hover table-sm">
                     <colgroup>
@@ -198,7 +213,7 @@ class K8sNamespace extends Component {
                     </tfoot>
                     <tbody>
                     {namespaces.map((row) =>
-                        <tr key={row.Name}>
+                        <tr key={row.Name} onClick={this.selectNamespace.bind(this, row)}>
                             <td>{row.Name}</td>
                             <td>
                                 {this.renderRowOwner(row)}
@@ -224,8 +239,8 @@ class K8sNamespace extends Component {
                                                 return <button type="button" className="btn btn-danger"
                                                                disabled>Delete</button>;
                                             default:
-                                                return <button type="button" className="btn btn-danger"
-                                                               onClick={self.deleteNamespace.bind(self, row)}>Delete</button>;
+                                                return <button type="button" className="btn btn-danger" onClick={self.deleteNamespace.bind(self, row)}>Delete</button>;
+
                                         }
                                     }
                                 })()}
@@ -236,8 +251,8 @@ class K8sNamespace extends Component {
                     </tbody>
                 </table>
 
-                <K8sNamespaceModalDelete config={this.state.config} namespace={this.state.selectedNamespace} callback={this.handleNamespaceDeletion.bind(this)} />
-                <K8sNamespaceModalCreate config={this.state.config} namespace={this.state.selectedNamespace} callback={this.handleNamespaceCreation.bind(this)} />
+                <K8sNamespaceModalDelete config={this.state.config} namespace={this.state.selectedNamespaceDelete} callback={this.handleNamespaceDeletion.bind(this)} />
+                <K8sNamespaceModalCreate config={this.state.config} callback={this.handleNamespaceCreation.bind(this)} />
             </div>
         );
     }
