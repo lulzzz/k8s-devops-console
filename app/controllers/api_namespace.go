@@ -8,6 +8,7 @@ import (
 	"k8s-devops-console/app/services"
 	"k8s.io/api/core/v1"
 	"k8s-devops-console/app/toolbox"
+	"strings"
 )
 
 type ResultNamespace struct {
@@ -79,6 +80,7 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 
 	roleBinding := "team"
 	username := c.getUser().Username
+	k8sUsername := c.getUser().Id
 
 	if ! app.RegexpNamespaceApp.MatchString(nsApp) {
 		result.Message = "Invalid app value"
@@ -110,10 +112,10 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 		}
 
 		result.Namespace = fmt.Sprintf("team-%s-%s", nsAreaTeam, nsApp)
-		labels[labelTeamKey] = nsAreaTeam
+		labels[labelTeamKey] = strings.ToLower(nsAreaTeam)
 	case "user":
 		result.Namespace = fmt.Sprintf("user-%s-%s", username, nsApp)
-		labels[labelUserKey] = username
+		labels[labelUserKey] = strings.ToLower(username)
 		roleBinding = "user"
 	default:
 		if ! c.checkTeamMembership(nsAreaTeam) {
@@ -123,8 +125,12 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 		}
 
 		result.Namespace = fmt.Sprintf("%s-%s", nsEnvironment, nsApp)
-		labels[labelTeamKey] = nsAreaTeam
+		labels[labelTeamKey] = strings.ToLower(nsAreaTeam)
 	}
+
+	// filtering
+	result.Namespace = strings.ToLower(result.Namespace)
+	result.Namespace = strings.Replace(result.Namespace, "_", "", -1)
 
 	namespace := v1.Namespace{}
 	namespace.Name = result.Namespace
@@ -156,18 +162,19 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 	if err := service.NamespaceCreate(namespace); err != nil {
 		result.Message = fmt.Sprintf("Error: %v", err)
 		c.Response.Status = http.StatusInternalServerError
+		return c.RenderJSON(result)
 	}
 
 	switch roleBinding {
 	case "team":
-		role := app.GetConfigString("k8s.team.role", "admin")
+		role := app.GetConfigString("k8s.team.namespaceRole", "admin")
 		if _, err := service.RoleBindingCreateNamespaceGroup(namespace.Name, nsAreaTeam, role); err != nil {
 			result.Message = fmt.Sprintf("Error: %v", err)
 			c.Response.Status = http.StatusInternalServerError
 		}
 	case "user":
-		role := app.GetConfigString("k8s.user.role", "admin")
-		if _, err := service.RoleBindingCreateNamespaceUser(namespace.Name, username, role); err != nil {
+		role := app.GetConfigString("k8s.user.namespaceRole", "admin")
+		if _, err := service.RoleBindingCreateNamespaceUser(namespace.Name, username, k8sUsername, role); err != nil {
 			result.Message = fmt.Sprintf("Error: %v", err)
 			c.Response.Status = http.StatusInternalServerError
 		}

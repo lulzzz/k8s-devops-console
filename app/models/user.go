@@ -5,12 +5,11 @@ import (
 )
 
 type User struct {
-	UserId             int
-	Name               string
-	Username, Password string
-	Email              string
-	Teams              []Team
-	IsAdmin            bool
+	Id       string
+	Username string
+	Email    string
+	Teams    []Team
+	IsAdmin  bool
 }
 
 func (u *User) String() string {

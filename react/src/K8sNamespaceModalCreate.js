@@ -86,6 +86,26 @@ class K8sNamespaceModalCreate extends Component {
         });
     }
 
+    previewNamespace() {
+        let namespace = "";
+
+        switch (this.state.nsEnvironment) {
+            case "user":
+                namespace = "user-" + this.props.config.User.Username + "-" + this.state.nsApp;
+                break;
+            case "team":
+                namespace = "team-" + this.props.config.User.Username + "-" + this.state.nsApp;
+                break;
+            default:
+                namespace = this.state.nsEnvironment + this.props.config.User.Username + "-" + this.state.nsApp;
+                break;
+        }
+
+        namespace = namespace.toLowerCase().replace(/_/g, "");
+
+        return <span id="namespacePreview">{namespace}</span>;
+    }
+
     render() {
         if (this.state.nsTeam === "") {
             if (this.props.config.Teams.length > 0) {
@@ -139,16 +159,7 @@ class K8sNamespaceModalCreate extends Component {
                                         <div className="col">
                                             <div className="p-3 mb-2 bg-light text-dark">
                                                 <i>Preview: </i>
-                                                {(() => {
-                                                    switch (this.state.nsEnvironment) {
-                                                        case "user":
-                                                            return <span id="namespacePreview">user-{this.props.config.User.Username}-{this.state.nsApp}</span>;
-                                                        case "team":
-                                                            return <span id="namespacePreview">team-{this.state.nsTeam}-{this.state.nsApp}</span>;
-                                                        default:
-                                                            return <span id="namespacePreview">{this.state.nsEnvironment}-{this.state.nsApp}</span>;
-                                                    }
-                                                })()}
+                                                {this.previewNamespace()}
                                             </div>
                                         </div>
                                     </div>

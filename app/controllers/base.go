@@ -27,6 +27,7 @@ func (c Base) accessCheck() (result revel.Result) {
 func (c Base) setUser(user models.User) {
 	c.ViewArgs["user"] = user
 	c.Session["user"] = user.Username
+	c.Session["userid"] = user.Id
 }
 
 func (c Base) getUser() (user *models.User) {
@@ -34,15 +35,10 @@ func (c Base) getUser() (user *models.User) {
 		user = c.ViewArgs["user"].(*models.User)
 	}
 	if username, ok := c.Session["user"]; ok {
-		teams := []models.Team{}
-
-		if username == "admin" {
-			teams = append(teams, models.Team{Name: "admin"})
-			teams = append(teams, models.Team{Name: "user"})
-		} else {
-			teams = append(teams, models.Team{Name: "user"})
+		if userid, ok := c.Session["userid"]; ok {
+			teams := []models.Team{}
+			user = &models.User{Id:userid, Username:username, Teams:teams}
 		}
-		user = &models.User{Username:username, Teams:teams}
 	}
 	c.ViewArgs["user"] = user
 	return
@@ -64,8 +60,11 @@ func (c Base) checkTeamMembership(teamName string) (status bool) {
 func (c Base) checkKubernetesNamespaceAccess(namespace v1.Namespace) (bool) {
 	user := c.getUser();
 
+	username := strings.ToLower(user.Username)
+	username = strings.Replace(username, "_", "", -1)
+
 	// USER namespace
-	regexpUser := regexp.MustCompile(fmt.Sprintf(app.NamespaceFilterUser, regexp.QuoteMeta(user.Username)));
+	regexpUser := regexp.MustCompile(fmt.Sprintf(app.NamespaceFilterUser, regexp.QuoteMeta(username)));
 	if regexpUser.MatchString(namespace.Name) {
 		return true
 	}

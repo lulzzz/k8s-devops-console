@@ -56,6 +56,8 @@ func (o *OAuth) FetchUserInfo(token *oauth2.Token) (user models.User, error erro
 			error = err
 			return
 		}
+
+		user.Id = githubUser.GetLogin()
 		user.Username = githubUser.GetLogin()
 		user.Email = githubUser.GetEmail()
 		user.IsAdmin = githubUser.GetSiteAdmin()
@@ -69,6 +71,9 @@ func (o *OAuth) FetchUserInfo(token *oauth2.Token) (user models.User, error erro
 		}
 
 		aadUserInfo := struct {
+			Directory  string `json:"iss"`
+			DirectoryId  string `json:"tid"`
+			UserId     string `json:"oid"`
 			Username   string `json:"upn"`
 		}{}
 		if err := userInfo.Claims(&aadUserInfo); err != nil {
@@ -76,11 +81,30 @@ func (o *OAuth) FetchUserInfo(token *oauth2.Token) (user models.User, error erro
 			return
 		}
 
+		if aadUserInfo.Directory == "" {
+			aadUserInfo.Directory = fmt.Sprintf("https://sts.windows.net/%s/", aadUserInfo.DirectoryId)
+		}
+
 		split := strings.SplitN(aadUserInfo.Username, "@", 2)
+
+		user.Id = fmt.Sprintf("%s#%s", aadUserInfo.Directory, aadUserInfo.UserId)
 		user.Username = split[0]
 		user.Email = aadUserInfo.Username
+
 	default:
 		o.error(fmt.Sprintf("oauth.provider \"%s\" is not valid", OAuthProvider))
+	}
+
+	if user.Id != "" {
+		// Init user
+		clusterRole := app.GetConfigString("k8s.user.clusterRole", "")
+		if clusterRole != "" {
+			service := Kubernetes{}
+
+			if _, err := service.ClusterRoleBindingUser(user.Username, user.Id, clusterRole); err != nil {
+				o.error(fmt.Sprintf("Unable to create ClusterRoleBinding: %s", err))
+			}
+		}
 	}
 
 	return

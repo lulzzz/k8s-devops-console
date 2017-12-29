@@ -31,7 +31,6 @@ func (c ApiApp) accessCheck() (result revel.Result) {
 
 func (c ApiApp) Config() revel.Result {
 	ret := ResultConfig{}
-	ret.User.Name = c.getUser().Name
 	ret.User.Username = c.getUser().Username
 
 	for _, team := range c.getUser().Teams {

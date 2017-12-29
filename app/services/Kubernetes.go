@@ -12,6 +12,7 @@ import (
 	"k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
 	v12 "k8s.io/api/rbac/v1"
+	"strings"
 )
 
 type Kubernetes struct {
@@ -108,9 +109,39 @@ func (k *Kubernetes) NamespaceDelete(namespace string) (error) {
 	return k.Client().CoreV1().Namespaces().Delete(namespace, &opts)
 }
 
+// Create cluster rolebinding for user for general access
+func (k *Kubernetes) ClusterRoleBindingUser(username, userid, roleName string) (roleBinding *v12.ClusterRoleBinding, error error) {
+	roleBindName := fmt.Sprintf("user:%s", username)
+
+	getOpts := metav1.GetOptions{}
+	if rb, _ := k.Client().RbacV1().ClusterRoleBindings().Get(roleBindName, getOpts); rb != nil && rb.GetUID() != "" {
+		deleteOpts := metav1.DeleteOptions{}
+		k.Client().RbacV1().ClusterRoleBindings().Delete(roleBindName, &deleteOpts)
+	}
+
+	annotiations := map[string]string{}
+	annotiations["user"] = strings.ToLower(username)
+
+	subject := v12.Subject{}
+	subject.Name = userid
+	subject.Kind = "User"
+
+	role := v12.RoleRef{}
+	role.Kind = "ClusterRole"
+	role.Name = roleName
+
+	roleBinding = &v12.ClusterRoleBinding{}
+	roleBinding.SetAnnotations(annotiations)
+	roleBinding.SetName(roleBindName)
+	roleBinding.RoleRef = role
+	roleBinding.Subjects = []v12.Subject{subject}
+
+	return k.Client().RbacV1().ClusterRoleBindings().Create(roleBinding)
+}
+
 // Create rolebinding for user to gain access to namespace
-func (k *Kubernetes) RoleBindingCreateNamespaceUser(namespace, user, roleName string) (roleBinding *v12.RoleBinding, error error) {
-	roleBindName := fmt.Sprintf("user:%s", user)
+func (k *Kubernetes) RoleBindingCreateNamespaceUser(namespace, username, userid, roleName string) (roleBinding *v12.RoleBinding, error error) {
+	roleBindName := fmt.Sprintf("user:%s", username)
 
 	getOpts := metav1.GetOptions{}
 	if rb, _ := k.Client().RbacV1().RoleBindings(namespace).Get(roleBindName, getOpts); rb != nil && rb.GetUID() != "" {
@@ -119,10 +150,10 @@ func (k *Kubernetes) RoleBindingCreateNamespaceUser(namespace, user, roleName st
 	}
 
 	annotiations := map[string]string{}
-	annotiations["user"] = user
+	annotiations["user"] = strings.ToLower(username)
 
 	subject := v12.Subject{}
-	subject.Name = user
+	subject.Name = userid
 	subject.Kind = "User"
 
 	role := v12.RoleRef{}
@@ -150,7 +181,7 @@ func (k *Kubernetes) RoleBindingCreateNamespaceGroup(namespace, group, roleName 
 	}
 
 	annotiations := map[string]string{}
-	annotiations["group"] = group
+	annotiations["group"] = strings.ToLower(group)
 
 	subject := v12.Subject{}
 	subject.Name = group
