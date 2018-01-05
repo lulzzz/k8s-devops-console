@@ -17,6 +17,9 @@ indent_style = tab
 [*.yml]
 indent_size = 2
 
+[*.yaml]
+indent_size = 2
+
 [*.conf]
 indent_size = 2
 

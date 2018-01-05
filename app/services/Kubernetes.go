@@ -171,6 +171,38 @@ func (k *Kubernetes) RoleBindingCreateNamespaceUser(namespace, username, userid,
 }
 
 // Create rolebinding for group to gain access to namespace
+func (k *Kubernetes) RoleBindingCreateNamespaceTeam(namespace, teamName, RoleBindName string, groups []string, roleName string) (roleBinding *v12.RoleBinding, error error) {
+	roleBindName := fmt.Sprintf("team:%s:%s", teamName, RoleBindName)
+
+	getOpts := metav1.GetOptions{}
+	if rb, _ := k.Client().RbacV1().RoleBindings(namespace).Get(roleBindName, getOpts); rb != nil && rb.GetUID() != "" {
+		deleteOpts := metav1.DeleteOptions{}
+		k.Client().RbacV1().RoleBindings(namespace).Delete(roleBindName, &deleteOpts)
+	}
+
+	annotiations := map[string]string{}
+	annotiations["team"] = strings.ToLower(teamName)
+
+	subjectList := []v12.Subject{}
+	for _, group := range groups {
+		subjectList = append(subjectList, v12.Subject{Kind: "Group", Name: group})
+	}
+
+	role := v12.RoleRef{}
+	role.Kind = "ClusterRole"
+	role.Name = roleName
+
+	roleBinding = &v12.RoleBinding{}
+	roleBinding.SetAnnotations(annotiations)
+	roleBinding.SetName(roleBindName)
+	roleBinding.SetNamespace(namespace)
+	roleBinding.RoleRef = role
+	roleBinding.Subjects = subjectList
+
+	return k.Client().RbacV1().RoleBindings(namespace).Create(roleBinding)
+}
+
+// Create rolebinding for group to gain access to namespace
 func (k *Kubernetes) RoleBindingCreateNamespaceGroup(namespace, group, roleName string) (roleBinding *v12.RoleBinding, error error) {
 	roleBindName := fmt.Sprintf("group:%s", group)
 

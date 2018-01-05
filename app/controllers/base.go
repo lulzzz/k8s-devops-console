@@ -16,6 +16,12 @@ type Base struct {
 	*revel.Controller
 }
 
+type userSessionStruct struct {
+	User string `json:"u"`
+	Id string  `json:"id"`
+	Groups []string  `json:"g"`
+}
+
 func (c Base) accessCheck() (result revel.Result) {
 	if c.getUser() == nil {
 		c.Response.Status = http.StatusForbidden
@@ -25,22 +31,29 @@ func (c Base) accessCheck() (result revel.Result) {
 }
 
 func (c Base) setUser(user models.User) {
+	// call session
 	c.ViewArgs["user"] = user
-	c.Session["user"] = user.Username
-	c.Session["userid"] = user.Id
+
+	// cookie session
+	c.Session["user"], _ = user.ToJson()
 }
 
 func (c Base) getUser() (user *models.User) {
+	// call session
 	if c.ViewArgs["user"] != nil {
 		user = c.ViewArgs["user"].(*models.User)
+		return
 	}
-	if username, ok := c.Session["user"]; ok {
-		if userid, ok := c.Session["userid"]; ok {
-			teams := []models.Team{}
-			user = &models.User{Id:userid, Username:username, Teams:teams}
+
+	// cookie session
+	if jsonVal, ok := c.Session["user"]; ok {
+		newUser, err := models.UserCreateFromJson(jsonVal, app.AppConfig)
+		if err == nil {
+			user = newUser
+			c.ViewArgs["user"] = newUser
 		}
 	}
-	c.ViewArgs["user"] = user
+
 	return
 }
 

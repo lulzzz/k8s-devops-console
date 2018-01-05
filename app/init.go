@@ -1,9 +1,13 @@
 package app
 
 import (
+	"os"
 	"regexp"
 	"strings"
+	"io/ioutil"
+	"path/filepath"
 	"github.com/revel/revel"
+	"k8s-devops-console/app/models"
 )
 
 var (
@@ -33,6 +37,7 @@ var (
 	NamespaceEnvironments []string
 	NamespaceFilterUser string
 	NamespaceFilterTeam string
+	AppConfig *models.AppConfig
 )
 
 func init() {
@@ -61,6 +66,7 @@ func init() {
 	// revel.OnAppStart(FillCache)
 	revel.OnAppStart(InitConfig)
 	revel.OnAppStart(InitTemplateEngine)
+	revel.OnAppStart(InitAppConfiguration)
 }
 
 // HeaderFilter adds common security headers
@@ -105,6 +111,30 @@ func InitConfig() {
 func InitTemplateEngine() {
 	revel.TemplateFuncs["config"] = func(option string) string {
 		return GetConfigString(option, "")
+	}
+}
+
+func InitAppConfiguration() {
+	var appYamlPath string
+	for _, path := range revel.ConfPaths {
+		path = filepath.Join(path, "app.yaml")
+		if _, err := os.Stat(path); err == nil {
+			appYamlPath = path
+		}
+	}
+
+	if appYamlPath != "" {
+		data, err := ioutil.ReadFile(appYamlPath)
+		if err != nil {
+			panic(err)
+		}
+
+		AppConfig, err = models.AppConfigCreateFromYaml(string(data))
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		AppConfig = &models.AppConfig{}
 	}
 }
 

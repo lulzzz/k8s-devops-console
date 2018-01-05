@@ -2,13 +2,13 @@ package controllers
 
 import (
 	"fmt"
+	"strings"
 	"net/http"
+	"k8s.io/api/core/v1"
 	"github.com/revel/revel"
 	"k8s-devops-console/app"
 	"k8s-devops-console/app/services"
-	"k8s.io/api/core/v1"
 	"k8s-devops-console/app/toolbox"
-	"strings"
 )
 
 type ResultNamespace struct {
@@ -79,8 +79,9 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 	labelTeamKey := app.GetConfigString("k8s.label.team", "team");
 
 	roleBinding := "team"
-	username := c.getUser().Username
-	k8sUsername := c.getUser().Id
+	user := c.getUser()
+	username := user.Username
+	k8sUsername := user.Id
 
 	if ! app.RegexpNamespaceApp.MatchString(nsApp) {
 		result.Message = "Invalid app value"
@@ -99,7 +100,7 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 
 	switch (nsEnvironment) {
 	case "team":
-		if ! app.RegexpNamespaceTeam.MatchString(nsAreaTeam) {
+		if !app.RegexpNamespaceTeam.MatchString(nsAreaTeam)  {
 			result.Message = "Invalid team value"
 			c.Response.Status = http.StatusForbidden
 			return c.RenderJSON(result)
@@ -118,7 +119,7 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 		labels[labelUserKey] = strings.ToLower(username)
 		roleBinding = "user"
 	default:
-		if ! c.checkTeamMembership(nsAreaTeam) {
+		if !c.checkTeamMembership(nsAreaTeam) {
 			result.Message = fmt.Sprintf("Access to team \"%s\" denied", nsAreaTeam)
 			c.Response.Status = http.StatusForbidden
 			return c.RenderJSON(result)
@@ -167,10 +168,13 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 
 	switch roleBinding {
 	case "team":
-		role := app.GetConfigString("k8s.team.namespaceRole", "admin")
-		if _, err := service.RoleBindingCreateNamespaceGroup(namespace.Name, nsAreaTeam, role); err != nil {
-			result.Message = fmt.Sprintf("Error: %v", err)
-			c.Response.Status = http.StatusInternalServerError
+		if namespaceTeam, err := user.GetTeam(nsAreaTeam); err == nil {
+			for _, permission := range namespaceTeam.Permissions {
+				if _, err := service.RoleBindingCreateNamespaceTeam(namespace.Name, nsAreaTeam, permission.Name, permission.Groups, permission.ClusterRole); err != nil {
+					result.Message = fmt.Sprintf("Error: %v", err)
+					c.Response.Status = http.StatusInternalServerError
+				}
+			}
 		}
 	case "user":
 		role := app.GetConfigString("k8s.user.namespaceRole", "admin")

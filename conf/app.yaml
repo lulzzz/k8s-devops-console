@@ -1,0 +1,83 @@
+user:
+  userfoo:
+    teams:
+    - devteam1
+    - devteam2
+    - devteam3
+
+group:
+  "bargroup":
+    teams:
+    - devteam5
+    - devteam8
+
+  "foogroup":
+    teams:
+    - devteam6
+
+  "bazgroup":
+    teams:
+    - devteam7
+
+team:
+  devteam1:
+    rolebinding:
+    - name: "general"
+      groups:
+      - "cf805c30-f000-baar-foba-123456789000"
+      clusterrole: admin
+
+  devteam2:
+    rolebinding:
+    - name: "general"
+      groups:
+      - "cf805c30-f000-baar-foba-123456789002"
+      clusterrole: admin
+    - name: "view"
+      groups:
+      - "cf805c30-f000-baar-foba-123456789004"
+      - "cf805c30-f000-baar-foba-123456789005"
+      - "cf805c30-f000-baar-foba-123456789006"
+      clusterrole: admin
+
+  devteam3:
+    rolebinding:
+    - name: "general"
+      groups:
+      - "cf805c30-f000-baar-foba-123456789003"
+      clusterrole: admin
+
+  devteam4:
+    rolebinding:
+    - name: "general"
+      groups:
+      - "cf805c30-f000-baar-foba-123456789004"
+      clusterrole: admin
+
+  devteam5:
+    rolebinding:
+    - name: "general"
+      groups:
+      - "cf805c30-f000-baar-foba-123456789005"
+      clusterrole: admin
+
+  devteam6:
+    rolebinding:
+    - name: "general"
+      groups:
+      - "cf805c30-f000-baar-foba-123456789006"
+      clusterrole: admin
+
+  devteam7:
+    rolebinding:
+    - name: "general"
+      groups:
+      - "cf805c30-f000-baar-foba-123456789007"
+      clusterrole: admin
+
+  devteam8:
+    rolebinding:
+    - name: "general"
+      groups:
+      - "cf805c30-f000-baar-foba-123456789006"
+      clusterrole: admin

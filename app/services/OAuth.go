@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"context"
+	"encoding/json"
 	"github.com/revel/revel"
 	"k8s-devops-console/app"
 	"k8s-devops-console/app/models"
@@ -75,6 +76,8 @@ func (o *OAuth) FetchUserInfo(token *oauth2.Token) (user models.User, error erro
 			DirectoryId  string `json:"tid"`
 			UserId     string `json:"oid"`
 			Username   string `json:"upn"`
+			PrefUsername string `json:"preferred_username"`
+			Groups []string `json:"groups"`
 		}{}
 		if err := userInfo.Claims(&aadUserInfo); err != nil {
 			error = err
@@ -85,12 +88,27 @@ func (o *OAuth) FetchUserInfo(token *oauth2.Token) (user models.User, error erro
 			aadUserInfo.Directory = fmt.Sprintf("https://sts.windows.net/%s/", aadUserInfo.DirectoryId)
 		}
 
+		// WORKAROUND: azuread groups (json array as string?!)
+		var groupList []string
+		for _, val := range aadUserInfo.Groups {
+			var tmp []interface{}
+			if err := json.Unmarshal([]byte(val), &tmp); err == nil {
+				for _, groupName := range tmp {
+					groupList = append(groupList, groupName.(string))
+				}
+			} else {
+				groupList = append(groupList, val)
+			}
+		}
+		aadUserInfo.Groups = groupList
+
 		split := strings.SplitN(aadUserInfo.Username, "@", 2)
 
+		// Build user
 		user.Id = fmt.Sprintf("%s#%s", aadUserInfo.Directory, aadUserInfo.UserId)
 		user.Username = split[0]
 		user.Email = aadUserInfo.Username
-
+		user.Groups = aadUserInfo.Groups
 	default:
 		o.error(fmt.Sprintf("oauth.provider \"%s\" is not valid", OAuthProvider))
 	}
@@ -141,7 +159,7 @@ func (o *OAuth) buildConfig() (config *oauth2.Config) {
 
 		o.oidcProvider = provider
 		endpoint = provider.Endpoint()
-		scopes = []string{oidc.ScopeOpenID, "profile", "email", "offline_access"}
+		scopes = []string{oidc.ScopeOpenID, "profile", "email", "offline_access", "groups"}
 	default:
 		o.error(fmt.Sprintf("oauth.provider \"%s\" is not valid", OAuthProvider))
 	}
