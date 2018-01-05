@@ -117,7 +117,7 @@ func InitTemplateEngine() {
 func InitAppConfiguration() {
 	var appYamlPath string
 	for _, path := range revel.ConfPaths {
-		path = filepath.Join(path, "app.yaml")
+		path = filepath.Join(path, GetConfigString("k8s.config", "app.yaml"))
 		if _, err := os.Stat(path); err == nil {
 			appYamlPath = path
 		}

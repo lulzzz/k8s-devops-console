@@ -12,6 +12,7 @@ docker run --rm -p 9000:9000 -e KUBECONFIG=/root/.kube/config -v /path/to/your/k
 | Env var               |Required       | Type     | Description                                                              |
 |:----------------------|:--------------|:---------|:-------------------------------------------------------------------------|
 | APP_SECRET            | no            | string   | Application secret for encryption (should be set, default is `random`)   |
+| K8S_CONFIG            | no            | string   | Filename of `app.yaml` file                                              |
 | KUBECONFIG            | no            | string   | Path to custom kubeconf (if not in-cluster)                              |
 | OAUTH_PROVIDER        | yes           | string   | OAuth provider name (`github` or `azuread`)                              |
 | OAUTH_CLIENT_ID       | yes           | string   | OAuth client id                                                          |
