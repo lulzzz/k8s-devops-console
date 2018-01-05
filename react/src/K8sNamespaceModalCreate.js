@@ -94,10 +94,10 @@ class K8sNamespaceModalCreate extends Component {
                 namespace = "user-" + this.props.config.User.Username + "-" + this.state.nsApp;
                 break;
             case "team":
-                namespace = "team-" + this.props.config.User.Username + "-" + this.state.nsApp;
+                namespace = "team-" + this.state.nsTeam + "-" + this.state.nsApp;
                 break;
             default:
-                namespace = this.state.nsEnvironment + this.props.config.User.Username + "-" + this.state.nsApp;
+                namespace = this.state.nsEnvironment + "-" + this.state.nsApp;
                 break;
         }
 
