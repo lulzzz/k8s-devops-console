@@ -1,7 +1,7 @@
 package models
 
 import (
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type AppConfigUser struct {
@@ -29,6 +29,6 @@ type AppConfig struct {
 }
 
 func AppConfigCreateFromYaml(yamlString string) (c *AppConfig, err error) {
-	err = yaml.UnmarshalStrict([]byte(yamlString), &c)
+	err = yaml.Unmarshal([]byte(yamlString), &c)
 	return
 }
