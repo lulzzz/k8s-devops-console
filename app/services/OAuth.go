@@ -65,12 +65,18 @@ func (o *OAuth) FetchUserInfo(token *oauth2.Token) (user models.User, error erro
 	case "azuread":
 		tokenSource := oauth2.StaticTokenSource(token)
 
+		// parse basic user info
 		userInfo, err := o.oidcProvider.UserInfo(ctx, tokenSource)
 		if err != nil {
 			error = err
 			return
 		}
 
+		// get prefixes from configuration
+		userPrefix := app.GetConfigString("oauth.username.prefix", "")
+		groupsPrefix := app.GetConfigString("oauth.groups.prefix", "")
+
+		// parse custom userinfo
 		aadUserInfo := struct {
 			Directory  string `json:"iss"`
 			DirectoryId  string `json:"tid"`
@@ -82,10 +88,6 @@ func (o *OAuth) FetchUserInfo(token *oauth2.Token) (user models.User, error erro
 		if err := userInfo.Claims(&aadUserInfo); err != nil {
 			error = err
 			return
-		}
-
-		if aadUserInfo.Directory == "" {
-			aadUserInfo.Directory = fmt.Sprintf("https://sts.windows.net/%s/", aadUserInfo.DirectoryId)
 		}
 
 		// WORKAROUND: azuread groups (json array as string?!)
@@ -100,12 +102,18 @@ func (o *OAuth) FetchUserInfo(token *oauth2.Token) (user models.User, error erro
 				groupList = append(groupList, val)
 			}
 		}
+
+		// add prefix
+		for i, val := range groupList {
+			groupList[i] = groupsPrefix + val
+		}
 		aadUserInfo.Groups = groupList
 
+		// extract username from email
 		split := strings.SplitN(aadUserInfo.Username, "@", 2)
 
-		// Build user
-		user.Id = fmt.Sprintf("%s#%s", aadUserInfo.Directory, aadUserInfo.UserId)
+		// Build user object
+		user.Id = userPrefix + aadUserInfo.UserId
 		user.Username = split[0]
 		user.Email = aadUserInfo.Username
 		user.Groups = aadUserInfo.Groups
@@ -119,6 +127,7 @@ func (o *OAuth) FetchUserInfo(token *oauth2.Token) (user models.User, error erro
 		if clusterRole != "" {
 			service := Kubernetes{}
 
+			app.AuditLog.Info(fmt.Sprintf("User(%s): create k8s ClusterRoleBinding for \"%s\" with Role \"%s\"", user.Username, user.Id, clusterRole))
 			if _, err := service.ClusterRoleBindingUser(user.Username, user.Id, clusterRole); err != nil {
 				o.error(fmt.Sprintf("Unable to create ClusterRoleBinding: %s", err))
 			}
