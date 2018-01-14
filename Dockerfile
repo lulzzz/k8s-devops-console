@@ -2,15 +2,18 @@
 # GET/CACHE GO DEPS
 #############################################
 FROM golang as go-dependencies
-RUN go get -u github.com/revel/cmd/revel
-RUN go get -u k8s.io/client-go/...
-RUN go get -u k8s.io/apimachinery/...
-RUN go get -u golang.org/x/oauth2
-RUN go get -u github.com/dustin/go-humanize
-RUN go get -u cloud.google.com/go/compute/metadata
-RUN go get -u github.com/google/go-github/github
-RUN go get -u github.com/coreos/go-oidc
-RUN go get -u gopkg.in/yaml.v2
+RUN go get github.com/tools/godep
+RUN go get github.com/revel/cmd/revel
+RUN go get k8s.io/client-go/... \
+    && cd $GOPATH/src/k8s.io/client-go \
+    && git checkout v6.0.0 \
+    && godep restore ./...
+RUN go get golang.org/x/oauth2
+RUN go get github.com/dustin/go-humanize
+RUN go get cloud.google.com/go/compute/metadata
+RUN go get github.com/google/go-github/github
+RUN go get github.com/coreos/go-oidc
+RUN go get gopkg.in/yaml.v2
 
 #############################################
 # GET/CACHE NPM DEPS
