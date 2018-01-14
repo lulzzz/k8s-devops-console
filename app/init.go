@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"github.com/revel/revel"
 	"k8s-devops-console/app/models"
+	"github.com/revel/revel/logger"
 )
 
 var (
@@ -38,6 +39,7 @@ var (
 	NamespaceFilterUser string
 	NamespaceFilterTeam string
 	AppConfig *models.AppConfig
+	AuditLog logger.MultiLogger
 )
 
 func init() {
@@ -64,6 +66,7 @@ func init() {
 	// revel.OnAppStart(ExampleStartupScript)
 	// revel.OnAppStart(InitDB)
 	// revel.OnAppStart(FillCache)
+	revel.OnAppStart(InitLogger)
 	revel.OnAppStart(InitConfig)
 	revel.OnAppStart(InitTemplateEngine)
 	revel.OnAppStart(InitAppConfiguration)
@@ -94,6 +97,18 @@ func GetConfigString(key, defaultValue string) (ret string) {
 	}
 
 	return
+}
+
+func InitLogger() {
+	logger.LogFunctionMap["stdout-json"]= func(c *logger.CompositeMultiHandler, options *logger.LogOptions) {
+		c.SetJson(os.Stdout, options)
+	}
+
+	logger.LogFunctionMap["stderr-json"]= func(c *logger.CompositeMultiHandler, options *logger.LogOptions) {
+		c.SetJson(os.Stderr, options)
+	}
+
+	AuditLog = logger.New().New("system", "audit")
 }
 
 func InitConfig() {

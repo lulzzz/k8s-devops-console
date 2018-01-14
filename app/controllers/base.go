@@ -127,6 +127,6 @@ func (c Base) renderJSONError(err string) (revel.Result) {
 }
 
 func (c Base) auditLog(msg string, ctx ...interface{}) {
-	msg = fmt.Sprintf("[AUDIT] User(%s): %s", c.getUser().Username, msg)
-	c.Log.Warn(msg, ctx...)
+	msg = fmt.Sprintf("User(%s): %s", c.getUser().Username, msg)
+	app.AuditLog.Info(msg)
 }
