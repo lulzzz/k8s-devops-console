@@ -33,6 +33,9 @@ func (c Base) setUser(user models.User) {
 	// call session
 	c.ViewArgs["user"] = user
 
+	// cookie app version
+	c.Session["version"] = app.AppVersion
+
 	// cookie session
 	c.Session["user"], _ = user.ToJson()
 }
@@ -42,6 +45,16 @@ func (c Base) getUser() (user *models.User) {
 	if c.ViewArgs["user"] != nil {
 		user = c.ViewArgs["user"].(*models.User)
 		return
+	}
+
+	if cookieAppVersion, ok := c.Session["version"]; ok {
+		if cookieAppVersion != app.AppVersion {
+			// force logout, wrong version
+			for k := range c.Session {
+				delete(c.Session, k)
+			}
+			return
+		}
 	}
 
 	// cookie session
