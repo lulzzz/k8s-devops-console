@@ -12,7 +12,7 @@ type ApiBase struct {
 
 func (c ApiBase) accessCheck() (result revel.Result) {
 	if c.getUser() == nil {
-		c.Response.Status = http.StatusForbidden
+		c.Response.Status = http.StatusUnauthorized
 		result = c.RenderError(errors.New("not logged in"))
 	}
 	return

@@ -1,11 +1,12 @@
-import React, { Component } from 'react';
+import React from 'react';
 import $ from 'jquery';
 
+import BaseComponent from './BaseComponent';
 import Spinner from './Spinner';
 import K8sNamespaceModalDelete from './K8sNamespaceModalDelete';
 import K8sNamespaceModalCreate from './K8sNamespaceModalCreate';
 
-class K8sNamespace extends Component {
+class K8sNamespace extends BaseComponent {
     constructor(props) {
         super(props);
 
@@ -34,39 +35,34 @@ class K8sNamespace extends Component {
     }
 
     loadNamespaces() {
-        $.get({
+        let jqxhr = $.get({
             url: '/api/namespace'
-        }).done((data) => {
+        }).done((jqxhr) => {
             this.setState({
-                namespaces: data,
+                namespaces: jqxhr,
                 globalError: '',
                 isStartup: false
             });
-        }).fail((data) => {
-            if (data.responseJSON && data.responseJSON.Message) {
-                this.setState({
-                    globalError: data.responseJSON.Message,
-                    isStartup: false
-                });
-            }
         });
+
+        this.handleXhr(jqxhr);
     }
 
     loadConfig() {
         $.get({
             url: '/api/_app/config'
-        }).done((data) => {
-            if (data) {
-                if (!data.Teams) {
-                    data.Teams = [];
+        }).done((jqxhr) => {
+            if (jqxhr) {
+                if (!jqxhr.Teams) {
+                    jqxhr.Teams = [];
                 }
 
-                if (!data.NamespaceEnvironments) {
-                    data.NamespaceEnvironments = [];
+                if (!jqxhr.NamespaceEnvironments) {
+                    jqxhr.NamespaceEnvironments = [];
                 }
 
                 this.setState({
-                    config: data
+                    config: jqxhr
                 });
             }
         });

@@ -1,7 +1,9 @@
-import React, { Component } from 'react';
+import React from 'react';
 import $ from 'jquery';
 
-class K8sNamespaceModalDelete extends Component {
+import BaseComponent from './BaseComponent';
+
+class K8sNamespaceModalDelete extends BaseComponent {
     constructor(props) {
         super(props);
 
@@ -25,7 +27,7 @@ class K8sNamespaceModalDelete extends Component {
             message: ""
         });
 
-        $.ajax({
+        let jqxhr = $.ajax({
             type: 'DELETE',
             url: "/api/namespace/" + encodeURI(this.props.namespace.Name)
         }).done(() => {
@@ -36,18 +38,14 @@ class K8sNamespaceModalDelete extends Component {
             if (this.props.callback) {
                 this.props.callback(this.props.namespace.Name)
             }
-        }).fail((data) => {
-            if (data.responseJSON && data.responseJSON.Message) {
-                this.setState({
-                    message: data.responseJSON.Message
-                });
-            }
         }).always(() => {
             this.setState({
                 buttonState: "",
                 buttonText: oldButtonText
             });
         });
+
+        this.handleXhr(jqxhr);
     }
 
     componentWillReceiveProps(nextProps) {

@@ -23,7 +23,7 @@ type userSessionStruct struct {
 
 func (c Base) accessCheck() (result revel.Result) {
 	if c.getUser() == nil {
-		c.Response.Status = http.StatusForbidden
+		c.Response.Status = http.StatusUnauthorized
 		result = c.RenderTemplate("Home/Index.html")
 	}
 	return

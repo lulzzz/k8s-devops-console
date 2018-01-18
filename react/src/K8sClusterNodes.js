@@ -1,9 +1,10 @@
-import React, { Component } from 'react';
+import React from 'react';
 import $ from 'jquery';
 
+import BaseComponent from './BaseComponent';
 import Spinner from './Spinner';
 
-class K8sClusterNodes extends Component {
+class K8sClusterNodes extends BaseComponent {
     constructor(props) {
         super(props);
 
@@ -21,22 +22,17 @@ class K8sClusterNodes extends Component {
     }
 
     loadNodes() {
-        $.get({
+        let jqxhr = $.get({
             url: '/api/cluster/nodes'
-        }).done((data) => {
+        }).done((jqxhr) => {
             this.setState({
-                nodes: data,
+                nodes: jqxhr,
                 globalError: '',
                 isStartup: false
             });
-        }).fail((data) => {
-            if (data.responseJSON && data.responseJSON.Message) {
-                this.setState({
-                    globalError: data.responseJSON.Message,
-                    isStartup: false
-                });
-            }
         });
+
+        this.handleXhr(jqxhr);
     }
 
     componentDidMount() {

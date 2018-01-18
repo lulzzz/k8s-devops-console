@@ -1,7 +1,9 @@
-import React, { Component } from 'react';
+import React from 'react';
 import $ from 'jquery';
 
-class K8sNamespaceModalCreate extends Component {
+import BaseComponent from './BaseComponent';
+
+class K8sNamespaceModalCreate extends BaseComponent {
     constructor(props) {
         super(props);
 
@@ -23,7 +25,8 @@ class K8sNamespaceModalCreate extends Component {
             buttonText: "Saving...",
             message: ""
         });
-        $.ajax({
+
+        let jqxhr = $.ajax({
             type: 'PUT',
             url: "/api/namespace",
             data: {
@@ -31,24 +34,18 @@ class K8sNamespaceModalCreate extends Component {
                 nsAreaTeam: this.state.nsTeam,
                 nsApp: this.state.nsApp
             }
-        }).done((data) => {
+        }).done((jqxhr) => {
             this.setState({
                nsApp: ""
             });
 
             let namespace = ""
-            if (data.Namespace) {
-                namespace = data.Namespace;
+            if (jqxhr.Namespace) {
+                namespace = jqxhr.Namespace;
             }
 
             if (this.props.callback) {
                 this.props.callback(namespace)
-            }
-        }).fail((data) => {
-            if (data.responseJSON && data.responseJSON.Message) {
-                this.setState({
-                    message: data.responseJSON.Message
-                });
             }
         }).always(() => {
             this.setState({
@@ -56,6 +53,8 @@ class K8sNamespaceModalCreate extends Component {
                 buttonText: oldButtonText
             });
         });
+
+        this.handleXhr(jqxhr);
     }
 
     handleNsEnvironmentChange(event) {
