@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"net/http"
 	"github.com/revel/revel"
+	"k8s-devops-console/app"
 	"k8s-devops-console/app/models"
 	"k8s.io/api/core/v1"
-	"k8s-devops-console/app"
-	"net/http"
-	"errors"
 )
 
 type Base struct {
@@ -25,7 +24,7 @@ type userSessionStruct struct {
 func (c Base) accessCheck() (result revel.Result) {
 	if c.getUser() == nil {
 		c.Response.Status = http.StatusForbidden
-		result = c.RenderError(errors.New("not logged in"))
+		result = c.RenderTemplate("Home/Index.html")
 	}
 	return
 }

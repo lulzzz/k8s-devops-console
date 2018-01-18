@@ -24,11 +24,11 @@ type ResultCluster struct {
 }
 
 type ApiCluster struct {
-	Base
+	ApiBase
 }
 
 func (c ApiCluster) accessCheck() (result revel.Result) {
-	return c.Base.accessCheck()
+	return c.ApiBase.accessCheck()
 }
 
 func (c ApiCluster) Nodes() revel.Result {

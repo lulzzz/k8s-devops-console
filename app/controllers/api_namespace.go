@@ -22,11 +22,11 @@ type ResultNamespace struct {
 }
 
 type ApiNamespace struct {
-	Base
+	ApiBase
 }
 
 func (c ApiNamespace) accessCheck() (result revel.Result) {
-	return c.Base.accessCheck()
+	return c.ApiBase.accessCheck()
 }
 
 func (c ApiNamespace) List() revel.Result {

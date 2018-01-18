@@ -6,7 +6,7 @@ import (
 )
 
 type ApiLogin struct {
-	Base
+	ApiBase
 }
 
 func (c ApiLogin) accessCheck() (result revel.Result) {

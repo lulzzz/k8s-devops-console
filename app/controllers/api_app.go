@@ -22,11 +22,11 @@ type ResultTeam struct {
 }
 
 type ApiApp struct {
-	Base
+	ApiBase
 }
 
 func (c ApiApp) accessCheck() (result revel.Result) {
-	return c.Base.accessCheck()
+	return c.ApiBase.accessCheck()
 }
 
 func (c ApiApp) Config() revel.Result {

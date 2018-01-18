@@ -5,11 +5,11 @@ import (
 )
 
 type ApiUser struct {
-	Base
+	ApiBase
 }
 
 func (c ApiUser) accessCheck() (result revel.Result) {
-	return c.Base.accessCheck()
+	return c.ApiBase.accessCheck()
 }
 
 func (c ApiUser) Kubeconfig() revel.Result {
