@@ -120,7 +120,7 @@ class K8sClusterNodes extends BaseComponent {
                                 <td><div title={row.Created}>{row.CreatedAgo}</div></td>
                                 <td>
                                     <span
-                                        className={row.Status === 'Ready' ? 'badge badge-success' : 'badge badge-warning'}>{row.Status}</span>
+                                        className={row.Status === 'Ready' ? 'badge badge-success' : 'badge badge-warning'}>{row.Status !== '' ? row.Status  : "unknown"}</span>
                                 </td>
                             </tr>
                         )}
