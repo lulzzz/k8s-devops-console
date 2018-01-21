@@ -8,7 +8,7 @@ class K8sNamespaceModalDelete extends BaseComponent {
         super(props);
 
         this.state = {
-            message: "",
+            globalError: "",
             buttonState: "",
             buttonText: "Delete namespace",
             confirmNamespace: ""
@@ -24,7 +24,7 @@ class K8sNamespaceModalDelete extends BaseComponent {
         this.setState({
             buttonState: "disabled",
             buttonText: "Deleting...",
-            message: ""
+            globalError: ""
         });
 
         let jqxhr = $.ajax({
@@ -87,7 +87,7 @@ class K8sNamespaceModalDelete extends BaseComponent {
                             <div className="modal-body">
                                 <div className="row">
                                     <div className="col">
-                                        <div className={this.state.message === '' ? null : 'alert alert-danger'}>{this.state.message}</div>
+                                        <div className={this.state.globalError === '' ? null : 'alert alert-danger'}>{this.state.globalError}</div>
                                         Do you really want to delete namespace <strong className="k8s-namespace">{this.props.namespace.Name}</strong>?
                                     </div>
                                 </div>

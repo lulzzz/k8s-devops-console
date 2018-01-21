@@ -14,7 +14,7 @@ class K8sNamespaceModalCreate extends BaseComponent {
             nsApp: "",
             buttonText: "Create namespace",
             buttonState: "disabled",
-            message: ""
+            globalError: ""
         };
     }
 
@@ -23,7 +23,7 @@ class K8sNamespaceModalCreate extends BaseComponent {
         this.setState({
             buttonState: "disabled",
             buttonText: "Saving...",
-            message: ""
+            globalError: ""
         });
 
         let jqxhr = $.ajax({
@@ -125,7 +125,7 @@ class K8sNamespaceModalCreate extends BaseComponent {
                             </div>
                             <div className="modal-body">
                                 <form method="post">
-                                    <div className={this.state.message === '' ? null : 'alert alert-danger'}>{this.state.message}</div>
+                                    <div className={this.state.globalError === '' ? null : 'alert alert-danger'}>{this.state.globalError}</div>
                                     <div className="row">
                                         <div className="col-3">
                                             <label htmlFor="inputNsEnvironment">Environment</label>
