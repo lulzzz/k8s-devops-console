@@ -135,8 +135,6 @@ func GetConfigInt(key string, defaultValue int) (ret int) {
 
 func InitLogger() {
 	AuditLog = revel.AppLog.New("system", "audit")
-
-	AuditLog.Info("Foobar")
 }
 
 func InitConfig() {
