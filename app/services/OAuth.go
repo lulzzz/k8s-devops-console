@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"context"
+	"regexp"
+	"errors"
 	"encoding/json"
 	"github.com/revel/revel"
 	"k8s-devops-console/app"
@@ -117,11 +119,18 @@ func (o *OAuth) FetchUserInfo(token *oauth2.Token) (user models.User, error erro
 		user.Username = split[0]
 		user.Email = aadUserInfo.Username
 		user.Groups = aadUserInfo.Groups
+
 	default:
 		o.error(fmt.Sprintf("oauth.provider \"%s\" is not valid", OAuthProvider))
 	}
 
 	if user.Id != "" {
+		userFilterRegexp := regexp.MustCompile(app.GetConfigString("oauth.username.filter", ""));
+		if ! userFilterRegexp.MatchString(user.Username) {
+			error = errors.New(fmt.Sprintf("User %s is not allowed to use this application", user.Username))
+			return
+		}
+
 		// Init user
 		clusterRole := app.GetConfigString("k8s.user.clusterRole", "")
 		if clusterRole != "" {
