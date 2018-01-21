@@ -256,6 +256,37 @@ func (k *Kubernetes) RoleBindingCreateNamespaceGroup(namespace, group, roleName 
 	return k.Client().RbacV1().RoleBindings(namespace).Create(roleBinding)
 }
 
+// Create rolebinding for group to gain access to namespace
+func (k *Kubernetes) RoleBindingCreateNamespaceServiceAccount(namespace, serviceaccount, roleName string) (roleBinding *v12.RoleBinding, error error) {
+	roleBindName := fmt.Sprintf("serviceaccount:%s", serviceaccount)
+
+	getOpts := metav1.GetOptions{}
+	if rb, _ := k.Client().RbacV1().RoleBindings(namespace).Get(roleBindName, getOpts); rb != nil && rb.GetUID() != "" {
+		deleteOpts := metav1.DeleteOptions{}
+		k.Client().RbacV1().RoleBindings(namespace).Delete(roleBindName, &deleteOpts)
+	}
+
+	annotiations := map[string]string{}
+	annotiations["serviceaccount"] = strings.ToLower(serviceaccount)
+
+	subject := v12.Subject{}
+	subject.Name = serviceaccount
+	subject.Kind = "ServiceAccount"
+
+	role := v12.RoleRef{}
+	role.Kind = "ClusterRole"
+	role.Name = roleName
+
+	roleBinding = &v12.RoleBinding{}
+	roleBinding.SetAnnotations(annotiations)
+	roleBinding.SetName(roleBindName)
+	roleBinding.SetNamespace(namespace)
+	roleBinding.RoleRef = role
+	roleBinding.Subjects = []v12.Subject{subject}
+
+	return k.Client().RbacV1().RoleBindings(namespace).Create(roleBinding)
+}
+
 func (k *Kubernetes) namespaceValidate(name string) (err error) {
 	if ! app.RegexpNamespaceFilter.MatchString(name) {
 		err = errors.New(fmt.Sprintf("Namespace %s not allowed", name))

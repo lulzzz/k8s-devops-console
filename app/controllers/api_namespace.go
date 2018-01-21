@@ -179,6 +179,7 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 		return c.RenderJSON(result)
 	}
 
+	// Namespace creation
 	if err := service.NamespaceCreate(namespace); err != nil {
 		result.Message = fmt.Sprintf("Error: %v", err)
 		c.Response.Status = http.StatusInternalServerError
@@ -187,6 +188,7 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 
 	switch roleBinding {
 	case "team":
+		// Team rolebinding
 		if namespaceTeam, err := user.GetTeam(nsAreaTeam); err == nil {
 			for _, permission := range namespaceTeam.Permissions {
 				if _, err := service.RoleBindingCreateNamespaceTeam(namespace.Name, nsAreaTeam, permission.Name, permission.Groups, permission.ClusterRole); err != nil {
@@ -196,12 +198,22 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 			}
 		}
 	case "user":
+		// User rolebinding
 		role := app.GetConfigString("k8s.user.namespaceRole", "admin")
 		if _, err := service.RoleBindingCreateNamespaceUser(namespace.Name, username, k8sUsername, role); err != nil {
 			result.Message = fmt.Sprintf("Error: %v", err)
 			c.Response.Status = http.StatusInternalServerError
 		}
 	}
+
+	// ServiceAccount rolebinding
+	if role := app.GetConfigString("k8s.serviceaccount.namespaceRole", ""); role != "" {
+		if _, err := service.RoleBindingCreateNamespaceServiceAccount(namespace.Name, "default", role); err != nil {
+			result.Message = fmt.Sprintf("Error: %v", err)
+			c.Response.Status = http.StatusInternalServerError
+		}
+	}
+
 
 	c.auditLog(fmt.Sprintf("Namespace \"%s\" created", namespace.Name))
 
