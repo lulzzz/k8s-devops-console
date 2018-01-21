@@ -58,15 +58,17 @@ func (k *Kubernetes) Client() (clientset *kubernetes.Clientset) {
 
 // Returns list of (filtered) namespaces
 func (k *Kubernetes) NamespaceList() (nsList map[string]v1.Namespace, err error) {
-	result, err := k.Client().CoreV1().Namespaces().List(metav1.ListOptions{})
+	result, error := k.Client().CoreV1().Namespaces().List(metav1.ListOptions{})
 
-	if err == nil {
+	if error == nil {
 		nsList = make(map[string]v1.Namespace, len(result.Items))
 		for _, ns := range result.Items {
 			if err := k.namespaceValidate(ns.Name); err == nil {
 				nsList[ns.Name] = ns
 			}
 		}
+	} else {
+		err = error
 	}
 
 	return
