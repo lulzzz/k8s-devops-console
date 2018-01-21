@@ -4,15 +4,15 @@ import (
 	"os"
 	"fmt"
 	"errors"
+	"strings"
+	"regexp"
 	"k8s-devops-console/app"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
 	v12 "k8s.io/api/rbac/v1"
-	"strings"
 )
 
 type Kubernetes struct {
@@ -71,6 +71,29 @@ func (k *Kubernetes) NamespaceList() (nsList map[string]v1.Namespace, err error)
 
 	return
 }
+
+// Returns count of namespaces
+func (k *Kubernetes) NamespaceCount(regexp *regexp.Regexp) (count int, err error) {
+	var nsList map[string]v1.Namespace
+	nsList, err = k.NamespaceList()
+
+	if err == nil {
+		if regexp != nil {
+			nsListTemp := make(map[string]v1.Namespace, len(nsList))
+			for key, val := range nsList {
+				if regexp.MatchString(key) {
+					nsListTemp[key] = val
+				}
+			}
+			nsList = nsListTemp
+		}
+
+		count = len(nsList)
+	}
+
+	return
+}
+
 
 // Returns list of nodes
 func (k *Kubernetes) Nodes() (*v1.NodeList, error) {

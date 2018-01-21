@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"fmt"
+	"regexp"
+	"errors"
 	"strings"
 	"net/http"
 	"k8s.io/api/core/v1"
@@ -100,14 +102,23 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 
 	switch (nsEnvironment) {
 	case "team":
+		// team filter check
 		if !app.RegexpNamespaceTeam.MatchString(nsAreaTeam)  {
 			result.Message = "Invalid team value"
 			c.Response.Status = http.StatusForbidden
 			return c.RenderJSON(result)
 		}
 
+		// membership check
 		if ! c.checkTeamMembership(nsAreaTeam) {
 			result.Message = fmt.Sprintf("Access to team \"%s\" denied", nsAreaTeam)
+			c.Response.Status = http.StatusForbidden
+			return c.RenderJSON(result)
+		}
+
+		// quota check
+		if err := c.checkNamespaceTeamQuota(nsAreaTeam); err != nil {
+			result.Message = fmt.Sprintf("Error: %v", err)
 			c.Response.Status = http.StatusForbidden
 			return c.RenderJSON(result)
 		}
@@ -115,10 +126,18 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 		result.Namespace = fmt.Sprintf("team-%s-%s", nsAreaTeam, nsApp)
 		labels[labelTeamKey] = strings.ToLower(nsAreaTeam)
 	case "user":
+		// quota check
+		if err := c.checkNamespaceUserQuota(username); err != nil {
+			result.Message = fmt.Sprintf("Error: %v", err)
+			c.Response.Status = http.StatusForbidden
+			return c.RenderJSON(result)
+		}
+
 		result.Namespace = fmt.Sprintf("user-%s-%s", username, nsApp)
 		labels[labelUserKey] = strings.ToLower(username)
 		roleBinding = "user"
 	default:
+		// membership check
 		if !c.checkTeamMembership(nsAreaTeam) {
 			result.Message = fmt.Sprintf("Access to team \"%s\" denied", nsAreaTeam)
 			c.Response.Status = http.StatusForbidden
@@ -234,4 +253,54 @@ func (c ApiNamespace) Delete(namespace string) revel.Result {
 	c.auditLog(fmt.Sprintf("Namespace \"%s\" deleted", nsObject.Name))
 
 	return c.RenderJSON(result)
+}
+
+func (c ApiNamespace) checkNamespaceTeamQuota(team string) (err error) {
+	var count int
+	quota := app.GetConfigInt("k8s.namespace.team.quota", 0)
+
+	if quota <= 0 {
+		// no quota
+		return
+	}
+
+	regexp := regexp.MustCompile(fmt.Sprintf(app.NamespaceFilterTeam, regexp.QuoteMeta(team)));
+
+	service := services.Kubernetes{}
+	count, err = service.NamespaceCount(regexp)
+	if err != nil {
+		return
+	}
+
+	if count >= quota {
+		// quota exceeded
+		err = errors.New(fmt.Sprintf("Team namespace quota of %v namespaces exceeded ", quota))
+	}
+
+	return
+}
+
+func (c ApiNamespace) checkNamespaceUserQuota(username string) (err error) {
+	var count int
+	quota := app.GetConfigInt("k8s.namespace.user.quota", 0)
+
+	if quota <= 0 {
+		// no quota
+		return
+	}
+
+	regexp := regexp.MustCompile(fmt.Sprintf(app.NamespaceFilterUser, regexp.QuoteMeta(username)));
+
+	service := services.Kubernetes{}
+	count, err = service.NamespaceCount(regexp)
+	if err != nil {
+		return
+	}
+
+	if count >= quota {
+		// quota exceeded
+		err = errors.New(fmt.Sprintf("Personal namespace quota of %v namespaces exceeded ", quota))
+	}
+
+	return
 }

@@ -3,6 +3,7 @@ package app
 import (
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"io/ioutil"
 	"path/filepath"
@@ -99,6 +100,26 @@ func GetConfigString(key, defaultValue string) (ret string) {
 	return
 }
 
+func GetConfigInt(key string, defaultValue int) (ret int) {
+	ret = defaultValue
+
+	// try to get config
+	if val, exists := revel.Config.String(key); exists && val != "" {
+		if i, err := strconv.Atoi(val); err == nil {
+			return i
+		}
+	}
+
+	// try to get config default
+	if val, exists := revel.Config.String(key + ".default"); exists && val != "" {
+		if i, err := strconv.Atoi(val); err == nil {
+			return i
+		}
+	}
+
+	return
+}
+
 func InitLogger() {
 	logger.LogFunctionMap["stdout-json"]= func(c *logger.CompositeMultiHandler, options *logger.LogOptions) {
 		c.SetJson(os.Stdout, options)
@@ -112,12 +133,12 @@ func InitLogger() {
 }
 
 func InitConfig() {
-	RegexpNamespaceFilter = regexp.MustCompile(GetConfigString("k8s.namespace.filter.access", DEFAULT_NAMESPACE_FILTER_ACCESS))
-	RegexpNamespaceDeleteFilter = regexp.MustCompile(GetConfigString("k8s.namespace.filter.delete", DEFAULT_NAMESPACE_FILTER_DELETE))
+	RegexpNamespaceFilter = regexp.MustCompile(GetConfigString("k8s.namespace.access.filter", DEFAULT_NAMESPACE_FILTER_ACCESS))
+	RegexpNamespaceDeleteFilter = regexp.MustCompile(GetConfigString("k8s.namespace.delete.filter", DEFAULT_NAMESPACE_FILTER_DELETE))
 	RegexpNamespaceTeam = regexp.MustCompile(GetConfigString("k8s.namespace.validation.team", NAMESPACE_TEAM))
 	RegexpNamespaceApp = regexp.MustCompile(GetConfigString("k8s.namespace.validation.app", NAMESPACE_APP))
-	NamespaceFilterUser = GetConfigString("k8s.namespace.filter.user", DEFAULT_NAMESPACE_FILTER_USER)
-	NamespaceFilterTeam = GetConfigString("k8s.namespace.filter.team", DEFAULT_NAMESPACE_FILTER_TEAM)
+	NamespaceFilterUser = GetConfigString("k8s.namespace.user.filter.", DEFAULT_NAMESPACE_FILTER_USER)
+	NamespaceFilterTeam = GetConfigString("k8s.namespace.team.filter", DEFAULT_NAMESPACE_FILTER_TEAM)
 
 	envList := GetConfigString("k8s.namespace.environments", NAMESPACE_ENVIRONMENTS)
 	NamespaceEnvironments = strings.Split(envList, ",")
