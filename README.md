@@ -27,6 +27,8 @@ docker run --rm -p 9000:9000 -e KUBECONFIG=/root/.kube/config -v /path/to/your/k
 | K8S_OAUTH_TENANT      | no            | string   | Kubernetes cluster tenant ID for kubeconfig generation                   |
 
 
+see [app.conf](conf/app.conf) for more environment settings and defaults
+
 ### OAuth
 
 Supported providers:
