@@ -60,6 +60,19 @@ func init() {
 		revel.ActionInvoker,           // Invoke the action.
 	}
 
+	logger.LogFunctionMap["stdoutjson"]=
+		func(c *logger.CompositeMultiHandler, options *logger.LogOptions) {
+			// Set the json formatter to os.Stdout, replace any existing handlers for the level specified
+			c.SetJson(os.Stdout, options)
+		}
+
+	logger.LogFunctionMap["stderrjson"]=
+		func(c *logger.CompositeMultiHandler, options *logger.LogOptions) {
+			// Set the json formatter to os.Stdout, replace any existing handlers for the level specified
+			c.SetJson(os.Stderr, options)
+		}
+
+
 
 	// Register startup functions with OnAppStart
 	// revel.DevMode and revel.RunMode only work inside of OnAppStart. See Example Startup Script
@@ -121,15 +134,9 @@ func GetConfigInt(key string, defaultValue int) (ret int) {
 }
 
 func InitLogger() {
-	logger.LogFunctionMap["stdout-json"]= func(c *logger.CompositeMultiHandler, options *logger.LogOptions) {
-		c.SetJson(os.Stdout, options)
-	}
+	AuditLog = revel.AppLog.New("system", "audit")
 
-	logger.LogFunctionMap["stderr-json"]= func(c *logger.CompositeMultiHandler, options *logger.LogOptions) {
-		c.SetJson(os.Stderr, options)
-	}
-
-	AuditLog = logger.New().New("system", "audit")
+	AuditLog.Info("Foobar")
 }
 
 func InitConfig() {
