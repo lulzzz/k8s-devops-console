@@ -1,5 +1,7 @@
 # K8s DevOps console
 
+![K8s DevOps console](documentation/example.png)
+
 ## Build (docker)
 
 ```bash
