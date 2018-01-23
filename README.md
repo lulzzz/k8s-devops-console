@@ -36,11 +36,9 @@ see [app.conf](conf/app.conf) for more environment settings and defaults
 Supported providers:
 
 - github ([create new application](https://github.com/settings/developers))
-- AzureAD (Azure AD, WIP)
+- AzureAD (Azure AD)
 
 ## TODO
-- setup k8s permissions on login
-- setup user role on namespace creation
-- create user key (store in remote storage?)
-- cron user cleanup
+- react single page app
+- godep integration
 - send notifcations
