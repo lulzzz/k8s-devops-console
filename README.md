@@ -1,6 +1,6 @@
 # K8s DevOps console
 
-![K8s DevOps console](documentation/example.png)
+![K8s DevOps console](documentation/example.gif)
 
 ## Build (docker)
 
