@@ -19,7 +19,8 @@ class K8sNamespace extends BaseComponent {
                     Username: '',
                 },
                 Teams: [],
-                NamespaceEnvironments: []
+                NamespaceEnvironments: [],
+                Quota: {}
             },
             selectedNamespace: [],
             selectedNamespaceDelete: [],
@@ -202,7 +203,10 @@ class K8sNamespace extends BaseComponent {
                     </thead>
                     <tfoot>
                     <tr>
-                        <td className="toolbox" colSpan="5">
+                        <td colSpan="3">
+                            <small>Namespace quota: {this.state.config.Quota.team === 0 ? 'unlimited' : this.state.config.Quota.team} team / {this.state.config.Quota.user === 0 ? 'unlimited' : this.state.config.Quota.user} personal</small>
+                        </td>
+                        <td className="toolbox" colSpan="3">
                             <button type="button" className="btn btn-primary" onClick={this.createNamespace.bind(this)}>Create</button>
                         </td>
                     </tr>

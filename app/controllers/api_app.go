@@ -9,6 +9,7 @@ type ResultConfig struct {
 	User ResultUser
 	Teams []ResultTeam
 	NamespaceEnvironments []string
+	Quota map[string]int
 }
 
 type ResultUser struct {
@@ -42,5 +43,12 @@ func (c ApiApp) Config() revel.Result {
 	}
 
 	ret.NamespaceEnvironments = app.NamespaceEnvironments
+
+
+	ret.Quota = map[string]int{
+		"team": app.GetConfigInt("k8s.namespace.team.quota", 0),
+		"user": app.GetConfigInt("k8s.namespace.user.quota", 0),
+	}
+
 	return c.RenderJSON(ret)
 }
