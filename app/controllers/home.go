@@ -8,6 +8,8 @@ import (
 	"k8s-devops-console/app/routes"
 	"k8s-devops-console/app/models"
 	"k8s-devops-console/app/services"
+	"regexp"
+	"k8s-devops-console/app"
 )
 
 type Home struct {
@@ -80,6 +82,26 @@ func (c Home) OAuthAuthorize() revel.Result {
 		c.Log.Error(fmt.Sprintf("OAUTH fetch user error: %v",err))
 		c.Flash.Error("OAuth failed: failed to get user information")
 		return c.Redirect(routes.Home.Index())
+	}
+
+	if filter := app.GetConfigString("oauth.username.filter.whitelist", ""); filter != "" {
+		filterRegexp := regexp.MustCompile(filter);
+
+		if ! filterRegexp.MatchString(user.Username) {
+			c.Log.Error(fmt.Sprintf("User %s is not allowed to use this application", user.Username))
+			c.Flash.Error(fmt.Sprintf("User %s is not allowed to use this application", user.Username))
+			return c.Redirect(routes.Home.Index())
+		}
+	}
+
+	if filter := app.GetConfigString("oauth.username.filter.blacklist", ""); filter != "" {
+		filterRegexp := regexp.MustCompile(filter);
+
+		if filterRegexp.MatchString(user.Username) {
+			c.Log.Error(fmt.Sprintf("User %s is not allowed to use this application", user.Username))
+			c.Flash.Error(fmt.Sprintf("User %s is not allowed to use this application", user.Username))
+			return c.Redirect(routes.Home.Index())
+		}
 	}
 
 	c.setUser(user)
