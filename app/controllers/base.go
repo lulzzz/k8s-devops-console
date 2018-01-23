@@ -2,9 +2,11 @@ package controllers
 
 import (
 	"fmt"
+	"bytes"
 	"regexp"
 	"strings"
 	"net/http"
+	"encoding/json"
 	"github.com/revel/revel"
 	"k8s-devops-console/app"
 	"k8s-devops-console/app/models"
@@ -141,4 +143,30 @@ func (c Base) renderJSONError(err string) (revel.Result) {
 func (c Base) auditLog(msg string, ctx ...interface{}) {
 	msg = fmt.Sprintf("User(%s): %s", c.getUser().Username, msg)
 	app.AuditLog.Info(msg)
+
+	if slackNotificationUrl := app.GetConfigString("notification.slack.webhook", ""); slackNotificationUrl != "" {
+		payload := struct {
+			Channel string `json:"channel"`
+			Username string `json:"username"`
+			Text string `json:"text"`
+		} {
+			Channel: app.GetConfigString("notification.slack.channel", ""),
+			Username: "k8s-devops-console",
+			Text: fmt.Sprintf(app.GetConfigString("notification.slack.message", "%s"), msg),
+		}
+
+		payloadJson, _ := json.Marshal(payload)
+
+		client := http.Client{}
+		req, err := http.NewRequest("POST", slackNotificationUrl, bytes.NewBuffer(payloadJson))
+		if err != nil {
+			revel.AppLog.Error(fmt.Sprintf("Error sending slack notification: %v", err))
+		}
+		req.Header.Set("Content-Type", "application/json")
+		_, err = client.Do(req)
+		if err != nil {
+			revel.AppLog.Error(fmt.Sprintf("Error sending slack notification: %v", err))
+		}
+		req.Body.Close()
+	}
 }
