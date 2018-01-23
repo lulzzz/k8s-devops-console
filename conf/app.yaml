@@ -1,4 +1,15 @@
+default:
+  teams:
+  - devteam0
+  - devteam5
+
 user:
+  blascma:
+    teams:
+    - devteam1
+    - devteam2
+    - devteam3
+
   userfoo:
     teams:
     - devteam1
@@ -20,6 +31,13 @@ group:
     - devteam7
 
 team:
+  devteam0:
+    rolebinding:
+    - name: "general"
+      groups:
+      - "cf805c30-f000-baar-foba-123456789000"
+      clusterrole: admin
+
   devteam1:
     rolebinding:
     - name: "general"

@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"sort"
 	"errors"
 	"encoding/json"
 )
@@ -26,6 +27,11 @@ func (u *User) initTeams(config *AppConfig) (teams []Team) {
 		return
 	}
 
+	// Default teams
+	for _, teamName := range config.Default.Teams {
+		teamList[teamName] = teamName
+	}
+
 	// User teams
 	if config.User != nil {
 		if val, exists := config.User[u.Username]; exists {
@@ -46,8 +52,15 @@ func (u *User) initTeams(config *AppConfig) (teams []Team) {
 		}
 	}
 
+	// Sort
+	teamNameList := make([]string, 0, len(teamList))
+	for teamName := range teamList {
+		teamNameList = append(teamNameList, teamName)
+	}
+	sort.Strings(teamNameList)
+
 	// Build teams (with permissions)
-	for _, teamName := range teamList {
+	for _, teamName := range teamNameList {
 		if _, exists := config.Team[teamName]; exists {
 			teamConfig := config.Team[teamName]
 
