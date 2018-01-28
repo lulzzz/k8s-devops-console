@@ -1,5 +1,7 @@
 # K8s DevOps console
 
+[![Docker Automated build](https://img.shields.io/docker/automated/webdevops/k8s-devops-console.svg)](https://hub.docker.com/r/webdevops/k8s-devops-console/)
+
 ![K8s DevOps console](documentation/example.gif)
 
 ## Build (docker)
