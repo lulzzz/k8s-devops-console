@@ -105,13 +105,16 @@ class K8sNamespaceModalCreate extends BaseComponent {
         return <span id="namespacePreview">{namespace}</span>;
     }
 
-    render() {
+    componentWillMount() {
+        // select first team if no selection available
         if (this.state.nsTeam === "") {
             if (this.props.config.Teams.length > 0) {
                 this.setState({nsTeam: this.props.config.Teams[0].Name});
             }
         }
+    }
 
+    render() {
         return (
             <div>
                 <div className="modal fade" id="createQuestion" tabIndex="-1" role="dialog" aria-labelledby="createQuestion" aria-hidden="true">
@@ -143,8 +146,8 @@ class K8sNamespaceModalCreate extends BaseComponent {
                                             <div className={this.state.nsEnvironment === 'user' ? 'hidden' : null}>
                                                 <label htmlFor="inputNsAreaTeam">Team</label>
                                                 <select name="nsAreaTeam" id="inputNsAreaTeam" className="form-control namespace-area-team" value={this.state.nsTeam} onChange={this.handleNsTeamChange.bind(this)}>
-                                                    {this.props.config.Teams.map((row) =>
-                                                        <option key="team-{row.Name}" value={row.Name}>{row.Name}</option>
+                                                    {this.props.config.Teams.map((row, value) =>
+                                                        <option key={row.Id} value={row.Name}>{row.Name}</option>
                                                     )}
                                                 </select>
                                             </div>
