@@ -25,12 +25,6 @@ body {
 td.toolbox,
 th.toolbox {
     text-align: right;
-    opacity: 0.5;
-}
-
-tr:hover td.toolbox,
-tr:hover th.toolbox {
-    opacity: 1;
 }
 
 thead td.toolbox,
@@ -69,6 +63,7 @@ button {
     opacity: 0.2;
 }
 
+.table.table-hover td.toolbox .btn-group.show,
 .table.table-hover tr:hover td.toolbox .btn-group {
     opacity: 1;
 }
