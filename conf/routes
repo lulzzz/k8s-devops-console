@@ -21,6 +21,7 @@ GET     /api/cluster/nodes                      ApiCluster.Nodes
 GET     /api/namespace                          ApiNamespace.List
 DELETE  /api/namespace/:namespace               ApiNamespace.Delete
 PUT     /api/namespace                          ApiNamespace.Create
+POST    /api/mgmt/namespace/resetpermissions/:namespace   ApiNamespace.ResetPermissions
 GET     /api/user/kubeconfig                    ApiUser.Kubeconfig
 
 # Ignore favicon requests

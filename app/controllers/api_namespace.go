@@ -180,7 +180,13 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 	}
 
 	// Namespace creation
-	if err := service.NamespaceCreate(namespace); err != nil {
+	if newNamespace, err := service.NamespaceCreate(namespace); newNamespace != nil && err == nil {
+		if err := c.setNamespacePermissions(newNamespace); err != nil {
+			result.Message = fmt.Sprintf("%v", err)
+			c.Response.Status = http.StatusForbidden
+			return c.RenderJSON(result)
+		}
+	} else {
 		result.Message = fmt.Sprintf("Error: %v", err)
 		c.Response.Status = http.StatusInternalServerError
 		return c.RenderJSON(result)
@@ -267,6 +273,49 @@ func (c ApiNamespace) Delete(namespace string) revel.Result {
 	return c.RenderJSON(result)
 }
 
+func (c ApiNamespace) ResetPermissions(namespace string) revel.Result {
+	result := struct {
+		Namespace string
+		Message string
+	} {
+		Namespace: namespace,
+		Message: "",
+	}
+
+	if result.Namespace == "" {
+		result.Message = "Invalid namespace"
+		c.Response.Status = http.StatusForbidden
+		return c.RenderJSON(result)
+	}
+
+	service := services.Kubernetes{}
+	nsObject, err := service.NamespaceGet(namespace)
+
+	if err != nil {
+		c.Log.Error(fmt.Sprintf("K8S-ERROR: %v", err))
+		result.Message = fmt.Sprintf("%s", err)
+		c.Response.Status = http.StatusInternalServerError
+		return c.RenderJSON(result)
+	}
+
+	if ! c.checkKubernetesNamespaceAccess(*nsObject) {
+		result.Message = fmt.Sprintf("Access to namespace \"%s\" denied", result.Namespace)
+		c.Response.Status = http.StatusForbidden
+		return c.RenderJSON(result)
+	}
+
+	if err := c.setNamespacePermissions(nsObject); err != nil {
+		result.Message = fmt.Sprintf("%v", err)
+		c.Response.Status = http.StatusForbidden
+		return c.RenderJSON(result)
+	}
+
+	result.Message = fmt.Sprintf("Namespace \"%s\" permissions resetted", nsObject.Name)
+	c.auditLog(fmt.Sprintf("Namespace \"%s\" permissions resetted", nsObject.Name))
+
+	return c.RenderJSON(result)
+}
+
 func (c ApiNamespace) checkNamespaceTeamQuota(team string) (err error) {
 	var count int
 	quota := app.GetConfigInt("k8s.namespace.team.quota", 0)
@@ -287,6 +336,49 @@ func (c ApiNamespace) checkNamespaceTeamQuota(team string) (err error) {
 	if count >= quota {
 		// quota exceeded
 		err = errors.New(fmt.Sprintf("Team namespace quota of %v namespaces exceeded ", quota))
+	}
+
+	return
+}
+
+func (c ApiNamespace) setNamespacePermissions(namespace *v1.Namespace) (error error) {
+	service := services.Kubernetes{}
+
+	user := c.getUser()
+	username := user.Username
+	k8sUsername := user.Id
+
+	labelUserKey := app.GetConfigString("k8s.label.user", "user");
+	labelTeamKey := app.GetConfigString("k8s.label.team", "team");
+
+	if labelUserVal, ok := namespace.Labels[labelUserKey]; ok {
+		if (labelUserVal == username) {
+			// User rolebinding
+			role := app.GetConfigString("k8s.user.namespaceRole", "admin")
+			if _, err := service.RoleBindingCreateNamespaceUser(namespace.Name, username, k8sUsername, role); err != nil {
+				return errors.New(fmt.Sprintf("Error: %v", err))
+			}
+		} else {
+			return errors.New(fmt.Sprintf("Namespace \"%s\" not owned by current user", namespace.Name))
+		}
+	} else if labelTeamVal, ok := namespace.Labels[labelTeamKey]; ok {
+		// Team rolebinding
+		if namespaceTeam, err := user.GetTeam(labelTeamVal); err == nil {
+			for _, permission := range namespaceTeam.Permissions {
+				if _, err := service.RoleBindingCreateNamespaceTeam(namespace.Name, labelTeamVal, permission.Name, permission.Groups, permission.ClusterRole); err != nil {
+					return errors.New(fmt.Sprintf("Error: %v", err))
+				}
+			}
+		}
+	} else {
+		return errors.New(fmt.Sprintf("Namespace \"%s\" cannot be resetted, labels not found", namespace.Name))
+	}
+
+	// ServiceAccount rolebinding
+	if role := app.GetConfigString("k8s.serviceaccount.namespaceRole", ""); role != "" {
+		if _, err := service.RoleBindingCreateNamespaceServiceAccount(namespace.Name, "default", role); err != nil {
+			return errors.New(fmt.Sprintf("Error: %v", err))
+		}
 	}
 
 	return

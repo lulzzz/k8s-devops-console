@@ -103,6 +103,21 @@ class K8sNamespace extends BaseComponent {
         });
     }
 
+    resetPermissions(namespace) {
+        let jqxhr = $.ajax({
+            type: 'POST',
+            url: "/api/mgmt/namespace/resetpermissions/" + encodeURI(namespace.Name)
+        }).done((jqxhr) => {
+            if (jqxhr.Message) {
+                this.setState({
+                    globalMessage: jqxhr.Message
+                });
+            }
+        });
+
+        this.handleXhr(jqxhr);
+    }
+
     renderRowOwner(row) {
         if (row.Name.match(/^user-[^-]+-.*/i)) {
             return <span><span className="badge badge-light">Personal Namespace</span></span>
@@ -166,9 +181,15 @@ class K8sNamespace extends BaseComponent {
     }
 
     render() {
-        if (this.state.globalError) {
+        if (this.state.isStartup && this.state.globalError) {
             return (
                 <div className="alert alert-danger">{this.state.globalError}</div>
+            )
+        }
+
+        if (this.state.isStartup) {
+            return (
+                <div></div>
             )
         }
 
@@ -178,6 +199,7 @@ class K8sNamespace extends BaseComponent {
             <div>
                 <Spinner active={this.state.isStartup}/>
                 <div className="container-toolbar-main">
+                    <div className={this.state.globalError === '' ? null : 'alert alert-danger'}>{this.state.globalError}</div>
                     <div className={this.state.globalMessage === '' ? 'alert alert-success invisible' : 'alert alert-success'}>{this.state.globalMessage}</div>
                     <input type="text" className="form-control search-input" placeholder="Search" value={this.state.searchValue} onChange={this.handleSearchChange.bind(this)} />
                     <div className="clearfix"></div>
@@ -239,7 +261,20 @@ class K8sNamespace extends BaseComponent {
                                                 return <button type="button" className="btn btn-danger"
                                                                disabled>Delete</button>;
                                             default:
-                                                return <button type="button" className="btn btn-danger" onClick={self.deleteNamespace.bind(self, row)}>Delete</button>;
+                                                return (
+                                                    <div className="btn-group" role="group">
+                                                        <button id="btnGroupDrop1" type="button"
+                                                                className="btn btn-secondary dropdown-toggle"
+                                                                data-toggle="dropdown" aria-haspopup="true"
+                                                                aria-expanded="false">
+                                                            Action
+                                                        </button>
+                                                        <div className="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                                                            <a className="dropdown-item" onClick={self.resetPermissions.bind(self, row)}>Reset permissions</a>
+                                                            <a className="dropdown-item" onClick={self.deleteNamespace.bind(self, row)}>Delete</a>
+                                                        </div>
+                                                    </div>
+                                                );
 
                                         }
                                     }

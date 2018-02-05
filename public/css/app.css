@@ -61,6 +61,18 @@ button {
     padding-bottom: 1rem;
 }
 
+.dropdown-menu a {
+    cursor: pointer;
+}
+
+.table.table-hover td.toolbox .btn-group {
+    opacity: 0.2;
+}
+
+.table.table-hover tr:hover td.toolbox .btn-group {
+    opacity: 1;
+}
+
 .k8s-namespace {
     white-space: nowrap;
 }

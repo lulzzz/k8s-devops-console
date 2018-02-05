@@ -115,14 +115,14 @@ func (k *Kubernetes) NamespaceGet(namespace string) (*v1.Namespace, error) {
 }
 
 // Create one namespace
-func (k *Kubernetes) NamespaceCreate(namespace v1.Namespace) (error) {
+func (k *Kubernetes) NamespaceCreate(namespace v1.Namespace) (*v1.Namespace, error) {
 	if err := k.namespaceValidate(namespace.Name); err != nil {
-		return err
+		return nil, err
 	}
 
-	_, err := k.Client().CoreV1().Namespaces().Create(&namespace)
+	namespaceNew, err := k.Client().CoreV1().Namespaces().Create(&namespace)
 
-	return err
+	return namespaceNew, err
 }
 
 // Delete one namespace
