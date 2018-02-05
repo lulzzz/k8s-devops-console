@@ -73,6 +73,16 @@ button {
     opacity: 1;
 }
 
+.floating-message {
+    position: relative;
+}
+
+.floating-message .alert {
+    position: absolute;
+    left: 0;
+    right: 6rem;
+}
+
 .k8s-namespace {
     white-space: nowrap;
 }
