@@ -153,19 +153,13 @@ class K8sNamespace extends BaseComponent {
     getNamespaces() {
         let ret = [];
         if (this.state.searchValue !== "") {
-            let term =this.state.searchValue;
+            let term = this.state.searchValue.replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&");
+            let re = new RegExp(term, "i");
+
             ret = this.state.namespaces.filter((row) => {
-                if (row.Name.includes(term)) {
-                    return true;
-                }
-
-                if (row.OwnerTeam.includes(term)) {
-                    return true;
-                }
-
-                if (row.OwnerUser.includes(term)) {
-                    return true;
-                }
+                if (row.Name.search(re) !== -1) return true;
+                if (row.OwnerTeam.search(re) !== -1) return true;
+                if (row.OwnerUser.search(re) !== -1) return true;
 
                 return false;
             });

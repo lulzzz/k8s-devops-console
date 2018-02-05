@@ -52,11 +52,19 @@ class K8sClusterNodes extends BaseComponent {
     getNodes() {
         let ret = [];
         if (this.state.searchValue !== "") {
-            let term =this.state.searchValue;
+            let term = this.state.searchValue.replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&");
+            let re = new RegExp(term, "i");
+
             ret = this.state.nodes.filter((row) => {
-                if (row.Name.includes(term)) {
-                    return true;
-                }
+                if (row.Name.search(re) !== -1) return true;
+                if (row.SpecArch.search(re) !== -1) return true;
+                if (row.SpecRegion.search(re) !== -1) return true;
+                if (row.SpecOS.search(re) !== -1) return true;
+                if (row.SpecZone.search(re) !== -1) return true;
+                if (row.SpecInstance.search(re) !== -1) return true;
+                if (row.SpecMachineCPU.search(re) !== -1) return true;
+                if (row.SpecMachineMemory.search(re) !== -1) return true;
+                if (row.Version.search(re) !== -1) return true;
 
                 return false;
             });
