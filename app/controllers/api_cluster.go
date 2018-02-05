@@ -18,6 +18,7 @@ type ResultCluster struct {
 	SpecRegion string
 	SpecZone string
 	SpecInstance string
+	InternalIp string
 	Status string
 	Created string
 	CreatedAgo string
@@ -55,6 +56,12 @@ func (c ApiCluster) Nodes() revel.Result {
 		for _, val := range node.Status.Conditions {
 			if val.Reason == "KubeletReady" {
 				row.Status = fmt.Sprintf("%v", val.Type)
+			}
+		}
+
+		for _, item := range node.Status.Addresses {
+			if item.Type == "InternalIP" {
+				row.InternalIp = item.Address
 			}
 		}
 

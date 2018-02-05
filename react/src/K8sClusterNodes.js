@@ -104,6 +104,7 @@ class K8sClusterNodes extends BaseComponent {
                         <thead>
                         <tr>
                             <th>Name</th>
+                            <th>Network</th>
                             <th>System</th>
                             <th>Version</th>
                             <th>Created</th>
@@ -120,6 +121,7 @@ class K8sClusterNodes extends BaseComponent {
                                     <span className="badge badge-secondary">Region {row.SpecRegion}</span>
                                     <span className="badge badge-secondary">Zone {row.SpecZone}</span>
                                 </td>
+                                <td>{row.InternalIp}</td>
                                 <td>
                                     <small>
                                         {row.SpecInstance}<br/>
