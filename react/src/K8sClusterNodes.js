@@ -65,7 +65,9 @@ class K8sClusterNodes extends BaseComponent {
         }
 
         ret = ret.sort(function(a,b) {
-            return a.Name >= b.Name;
+            if(a.Name < b.Name) return -1;
+            if(a.Name > b.Name) return 1;
+            return 0;
         });
 
         return ret;
