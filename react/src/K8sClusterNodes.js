@@ -88,7 +88,7 @@ class K8sClusterNodes extends BaseComponent {
                     <div className="container-toolbar-main">
                         <div className={this.state.globalMessage === '' ? 'alert alert-success invisible' : 'alert alert-success'}>{this.state.globalMessage}</div>
                         <input type="text" className="form-control search-input" placeholder="Search" value={this.state.searchValue} onChange={this.handleSearchChange.bind(this)} />
-                        <div class="clearfix"></div>
+                        <div className="clearfix"></div>
                     </div>
                     <table className="table table-hover table-sm">
                         <thead>
@@ -104,8 +104,7 @@ class K8sClusterNodes extends BaseComponent {
                         {nodes.map((row) =>
                             <tr key={row.Name} className={row.Role === 'master' ? 'table-warning' : null}>
                                 <td>
-                                    <span
-                                        className={row.Role === 'master' ? 'badge badge-danger' : 'badge badge-primary'}>{row.Role}</span> {row.Name}<br/>
+                                    <span className={row.Role === 'master' ? 'badge badge-danger' : 'badge badge-primary'}>{row.Role}</span> {row.Name}<br/>
                                     <span className="badge badge-info">{row.SpecArch}</span>
                                     <span className="badge badge-info">{row.SpecOS}</span>
                                     <span className="badge badge-secondary">Region {row.SpecRegion}</span>
