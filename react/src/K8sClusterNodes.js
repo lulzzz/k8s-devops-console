@@ -86,7 +86,9 @@ class K8sClusterNodes extends BaseComponent {
                 <div>
                     <Spinner active={this.state.isStartup}/>
                     <div className="container-toolbar-main">
-                        <div className={this.state.globalMessage === '' ? 'alert alert-success invisible' : 'alert alert-success'}>{this.state.globalMessage}</div>
+                        <div className="floating-message">
+                            <div className={this.state.globalMessage === '' ? 'alert alert-success invisible' : 'alert alert-success'}>{this.state.globalMessage}</div>
+                        </div>
                         <input type="text" className="form-control search-input" placeholder="Search" value={this.state.searchValue} onChange={this.handleSearchChange.bind(this)} />
                         <div className="clearfix"></div>
                     </div>
