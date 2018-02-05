@@ -13,6 +13,7 @@ import (
 	"k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
 	v12 "k8s.io/api/rbac/v1"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
 
 type Kubernetes struct {
