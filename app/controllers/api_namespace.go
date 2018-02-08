@@ -374,7 +374,7 @@ func (c ApiNamespace) setNamespacePermissions(namespace *v1.Namespace) (error er
 		// Team rolebinding
 		if namespaceTeam, err := user.GetTeam(labelTeamVal); err == nil {
 			for _, permission := range namespaceTeam.Permissions {
-				if _, err := service.RoleBindingCreateNamespaceTeam(namespace.Name, labelTeamVal, permission.Name, permission.Groups, permission.ClusterRole); err != nil {
+				if _, err := service.RoleBindingCreateNamespaceTeam(namespace.Name, labelTeamVal, permission); err != nil {
 					return errors.New(fmt.Sprintf("Error: %v", err))
 				}
 			}

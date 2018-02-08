@@ -14,6 +14,7 @@ import (
 	"k8s.io/client-go/rest"
 	v12 "k8s.io/api/rbac/v1"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"k8s-devops-console/app/models"
 )
 
 type Kubernetes struct {
@@ -197,8 +198,8 @@ func (k *Kubernetes) RoleBindingCreateNamespaceUser(namespace, username, userid,
 }
 
 // Create rolebinding for group to gain access to namespace
-func (k *Kubernetes) RoleBindingCreateNamespaceTeam(namespace, teamName, RoleBindName string, groups []string, roleName string) (roleBinding *v12.RoleBinding, error error) {
-	roleBindName := fmt.Sprintf("team:%s:%s", teamName, RoleBindName)
+func (k *Kubernetes) RoleBindingCreateNamespaceTeam(namespace, teamName string, permission models.TeamPermissions) (roleBinding *v12.RoleBinding, error error) {
+	roleBindName := fmt.Sprintf("team:%s:%s", teamName, permission.Name)
 
 	getOpts := metav1.GetOptions{}
 	if rb, _ := k.Client().RbacV1().RoleBindings(namespace).Get(roleBindName, getOpts); rb != nil && rb.GetUID() != "" {
@@ -210,13 +211,26 @@ func (k *Kubernetes) RoleBindingCreateNamespaceTeam(namespace, teamName, RoleBin
 	annotiations["team"] = strings.ToLower(teamName)
 
 	subjectList := []v12.Subject{}
-	for _, group := range groups {
+	for _, group := range permission.Groups {
 		subjectList = append(subjectList, v12.Subject{Kind: "Group", Name: group})
+	}
+
+	for _, user := range permission.Users {
+		subjectList = append(subjectList, v12.Subject{Kind: "User", Name: user})
+	}
+
+	for _, serviceAccount := range permission.ServiceAccounts {
+		if serviceAccount.Namespace == "" {
+			// default is local namespace
+			serviceAccount.Namespace = namespace
+		}
+
+		subjectList = append(subjectList, v12.Subject{Kind: "ServiceAccount", Name: serviceAccount.Name, Namespace: serviceAccount.Namespace})
 	}
 
 	role := v12.RoleRef{}
 	role.Kind = "ClusterRole"
-	role.Name = roleName
+	role.Name = permission.ClusterRole
 
 	roleBinding = &v12.RoleBinding{}
 	roleBinding.SetAnnotations(annotiations)
