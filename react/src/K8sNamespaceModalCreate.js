@@ -134,7 +134,7 @@ class K8sNamespaceModalCreate extends BaseComponent {
                                             <label htmlFor="inputNsEnvironment">Environment</label>
                                             <select name="nsEnvironment" id="inputNsEnvironment" className="form-control" required value={this.state.nsEnvironment} onChange={this.handleNsEnvironmentChange.bind(this)}>
                                             {this.props.config.NamespaceEnvironments.map((row) =>
-                                                <option key={row} value={row}>{row}</option>
+                                                <option key={row.Environment} value={row.Environment}>{row.Environment} ({row.Description})</option>
                                             )}
                                             </select>
                                         </div>
@@ -160,8 +160,7 @@ class K8sNamespaceModalCreate extends BaseComponent {
                                     <div className="row">
                                         <div className="col">
                                             <div className="p-3 mb-2 bg-light text-dark">
-                                                <i>Preview: </i>
-                                                {this.previewNamespace()}
+                                                <i>Preview: </i>{this.previewNamespace()}
                                             </div>
                                         </div>
                                     </div>

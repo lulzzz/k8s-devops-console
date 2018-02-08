@@ -5,10 +5,15 @@ import (
 	"k8s-devops-console/app"
 )
 
+type ResultNamespaceConfig struct {
+	Environment string
+	Description string
+}
+
 type ResultConfig struct {
 	User ResultUser
 	Teams []ResultTeam
-	NamespaceEnvironments []string
+	NamespaceEnvironments []ResultNamespaceConfig
 	Quota map[string]int
 }
 
@@ -42,7 +47,14 @@ func (c ApiApp) Config() revel.Result {
 		ret.Teams = append(ret.Teams, row)
 	}
 
-	ret.NamespaceEnvironments = app.NamespaceEnvironments
+	for _, envName := range app.NamespaceEnvironments {
+		tmp := ResultNamespaceConfig{
+			Environment: envName,
+			Description: app.GetConfigString("k8s.namespace.environments.description." + envName, ""),
+		}
+
+		ret.NamespaceEnvironments = append(ret.NamespaceEnvironments, tmp)
+	}
 
 
 	ret.Quota = map[string]int{
