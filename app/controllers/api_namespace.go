@@ -15,6 +15,8 @@ import (
 
 type ResultNamespace struct {
 	Name string
+	Environment string
+	Description string
 	OwnerTeam string
 	OwnerUser string
 	Status string
@@ -46,8 +48,15 @@ func (c ApiNamespace) List() revel.Result {
 			continue;
 		}
 
+		namespaceParts := strings.Split(ns.Name, "-")
+		environment := ""
+		if len(namespaceParts) > 2 {
+			environment = namespaceParts[0]
+		}
+
 		row := ResultNamespace{
 			Name: ns.Name,
+			Environment: environment,
 			Status: fmt.Sprintf("%v", ns.Status.Phase),
 			Created: ns.CreationTimestamp.UTC().String(),
 			CreatedAgo: revel.TimeAgo(ns.CreationTimestamp.UTC()),
