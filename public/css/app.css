@@ -70,6 +70,7 @@ button {
 
 .floating-message {
     position: relative;
+    z-index: -1;
 }
 
 .floating-message .alert {
