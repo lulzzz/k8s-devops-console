@@ -68,6 +68,10 @@ button {
     opacity: 1;
 }
 
+table tr.k8s-master {
+    background-color: #e3ffde;
+}
+
 .editable {
     cursor: pointer;
 }

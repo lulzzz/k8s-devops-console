@@ -113,12 +113,12 @@ class K8sClusterNodes extends BaseComponent {
                         </thead>
                         <tbody>
                         {nodes.map((row) =>
-                            <tr key={row.Name} className={row.Role === 'master' ? 'table-warning' : null}>
+                            <tr key={row.Name} className={row.Role === 'master' ? 'k8s-master' : 'k8s-agent'}>
                                 <td>
                                     <span className={row.Role === 'master' ? 'badge badge-danger' : 'badge badge-primary'}>{row.Role}</span> {row.Name}<br/>
-                                    <span className="badge badge-info">{row.SpecArch}</span>
-                                    <span className="badge badge-info">{row.SpecOS}</span>
-                                    <span className="badge badge-secondary">Region {row.SpecRegion}</span>
+                                    <span className="badge badge-info">{row.SpecArch}</span>&nbsp;
+                                    <span className="badge badge-info">{row.SpecOS}</span>&nbsp;
+                                    <span className="badge badge-secondary">Region {row.SpecRegion}</span>&nbsp;
                                     <span className="badge badge-secondary">Zone {row.SpecZone}</span>
                                 </td>
                                 <td>{row.InternalIp}</td>
