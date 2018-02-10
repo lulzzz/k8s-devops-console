@@ -211,6 +211,7 @@ class K8sNamespace extends BaseComponent {
                 if (row.Name.search(re) !== -1) return true;
                 if (row.OwnerTeam.search(re) !== -1) return true;
                 if (row.OwnerUser.search(re) !== -1) return true;
+                if (row.Description.search(re) !== -1) return true;
 
                 return false;
             });
@@ -250,7 +251,7 @@ class K8sNamespace extends BaseComponent {
                         <div className={this.state.globalError === '' ? null : 'alert alert-danger'}>{this.state.globalError}</div>
                         <div className={this.state.globalMessage === '' ? 'alert alert-success invisible' : 'alert alert-success'}>{this.state.globalMessage}</div>
                     </div>
-                    <input type="text" className="form-control search-input" placeholder="Search" value={this.state.searchValue} onChange={this.handleDescriptionChange}/>
+                    <input type="text" className="form-control search-input" placeholder="Search" value={this.state.searchValue} onChange={this.handleSearchChange.bind(this)}/>
                     <div className="clearfix"></div>
                 </div>
                 <table className="table table-hover table-sm">
