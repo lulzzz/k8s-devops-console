@@ -126,6 +126,17 @@ func (k *Kubernetes) NamespaceCreate(namespace v1.Namespace) (*v1.Namespace, err
 	return namespaceNew, err
 }
 
+// Updates namespace
+func (k *Kubernetes) NamespaceUpdate(namespace *v1.Namespace) (*v1.Namespace, error) {
+	if err := k.namespaceValidate(namespace.Name); err != nil {
+		return nil, err
+	}
+
+	namespaceNew, err := k.Client().CoreV1().Namespaces().Update(namespace)
+
+	return namespaceNew, err
+}
+
 // Delete one namespace
 func (k *Kubernetes) NamespaceDelete(namespace string) (error) {
 	if err := k.namespaceValidate(namespace); err != nil {
@@ -198,7 +209,7 @@ func (k *Kubernetes) RoleBindingCreateNamespaceUser(namespace, username, userid,
 }
 
 // Create rolebinding for group to gain access to namespace
-func (k *Kubernetes) RoleBindingCreateNamespaceTeam(namespace, teamName string, permission models.TeamPermissions) (roleBinding *v12.RoleBinding, error error) {
+func (k *Kubernetes) RoleBindingCreateNamespaceTeam(namespace string, teamName string, permission models.TeamPermissions) (roleBinding *v12.RoleBinding, error error) {
 	roleBindName := fmt.Sprintf("team:%s:%s", teamName, permission.Name)
 
 	getOpts := metav1.GetOptions{}

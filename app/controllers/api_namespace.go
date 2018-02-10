@@ -41,6 +41,8 @@ func (c ApiNamespace) List() revel.Result {
 		return c.renderJSONError("Unable to contact cluster")
 	}
 
+	k8sAnnotationDescription := app.GetConfigString("k8s.annotation.namespace.description", "");
+
 	ret := []ResultNamespace{}
 
 	for _, ns := range nsList {
@@ -60,8 +62,12 @@ func (c ApiNamespace) List() revel.Result {
 			Status: fmt.Sprintf("%v", ns.Status.Phase),
 			Created: ns.CreationTimestamp.UTC().String(),
 			CreatedAgo: revel.TimeAgo(ns.CreationTimestamp.UTC()),
-			Deleteable: app.RegexpNamespaceDeleteFilter.MatchString(ns.Name),
+			Deleteable: c.checkDeletable(&ns),
 		};
+
+		if val, ok := ns.Annotations[k8sAnnotationDescription]; ok {
+			row.Description = val
+		}
 
 		if val, ok := ns.Labels["team"]; ok {
 			row.OwnerTeam = val
@@ -89,10 +95,8 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 	labelUserKey := app.GetConfigString("k8s.label.user", "user");
 	labelTeamKey := app.GetConfigString("k8s.label.team", "team");
 
-	roleBinding := "team"
 	user := c.getUser()
 	username := user.Username
-	k8sUsername := user.Id
 
 	if ! app.RegexpNamespaceApp.MatchString(nsApp) {
 		result.Message = "Invalid app value"
@@ -144,7 +148,6 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 
 		result.Namespace = fmt.Sprintf("user-%s-%s", username, nsApp)
 		labels[labelUserKey] = strings.ToLower(username)
-		roleBinding = "user"
 	default:
 		// membership check
 		if !c.checkTeamMembership(nsAreaTeam) {
@@ -201,35 +204,6 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 		return c.RenderJSON(result)
 	}
 
-	switch roleBinding {
-	case "team":
-		// Team rolebinding
-		if namespaceTeam, err := user.GetTeam(nsAreaTeam); err == nil {
-			for _, permission := range namespaceTeam.Permissions {
-				if _, err := service.RoleBindingCreateNamespaceTeam(namespace.Name, nsAreaTeam, permission.Name, permission.Groups, permission.ClusterRole); err != nil {
-					result.Message = fmt.Sprintf("Error: %v", err)
-					c.Response.Status = http.StatusInternalServerError
-				}
-			}
-		}
-	case "user":
-		// User rolebinding
-		role := app.GetConfigString("k8s.user.namespaceRole", "admin")
-		if _, err := service.RoleBindingCreateNamespaceUser(namespace.Name, username, k8sUsername, role); err != nil {
-			result.Message = fmt.Sprintf("Error: %v", err)
-			c.Response.Status = http.StatusInternalServerError
-		}
-	}
-
-	// ServiceAccount rolebinding
-	if role := app.GetConfigString("k8s.serviceaccount.namespaceRole", ""); role != "" {
-		if _, err := service.RoleBindingCreateNamespaceServiceAccount(namespace.Name, "default", role); err != nil {
-			result.Message = fmt.Sprintf("Error: %v", err)
-			c.Response.Status = http.StatusInternalServerError
-		}
-	}
-
-
 	c.auditLog(fmt.Sprintf("Namespace \"%s\" created", namespace.Name))
 
 	return c.RenderJSON(result)
@@ -266,7 +240,7 @@ func (c ApiNamespace) Delete(namespace string) revel.Result {
 		return c.RenderJSON(result)
 	}
 
-	if !app.RegexpNamespaceDeleteFilter.MatchString(namespace) {
+	if !c.checkDeletable(nsObject) {
 		result.Message = fmt.Sprintf("Deletion of namespace \"%s\" denied", result.Namespace)
 		c.Response.Status = http.StatusForbidden
 		return c.RenderJSON(result)
@@ -324,6 +298,57 @@ func (c ApiNamespace) ResetPermissions(namespace string) revel.Result {
 
 	return c.RenderJSON(result)
 }
+
+func (c ApiNamespace) SetDescription(namespace, description string) revel.Result {
+	result := struct {
+		Namespace string
+		Message string
+	} {
+		Namespace: namespace,
+		Message: "",
+	}
+
+	if result.Namespace == "" {
+		result.Message = "Invalid namespace"
+		c.Response.Status = http.StatusForbidden
+		return c.RenderJSON(result)
+	}
+
+	service := services.Kubernetes{}
+	nsObject, err := service.NamespaceGet(namespace)
+
+	if err != nil {
+		c.Log.Error(fmt.Sprintf("K8S-ERROR: %v", err))
+		result.Message = fmt.Sprintf("%s", err)
+		c.Response.Status = http.StatusInternalServerError
+		return c.RenderJSON(result)
+	}
+
+	if ! c.checkKubernetesNamespaceAccess(*nsObject) {
+		result.Message = fmt.Sprintf("Access to namespace \"%s\" denied", result.Namespace)
+		c.Response.Status = http.StatusForbidden
+		return c.RenderJSON(result)
+	}
+
+	k8sAnnotationDescription := app.GetConfigString("k8s.annotation.namespace.description", "");
+
+	if nsObject.Annotations == nil {
+		nsObject.Annotations = map[string]string{}
+	}
+	nsObject.Annotations[k8sAnnotationDescription] = description
+
+	if _, err := service.NamespaceUpdate(nsObject); err != nil {
+		result.Message = fmt.Sprintf("Access to namespace \"%s\" denied", result.Namespace)
+		c.Response.Status = http.StatusForbidden
+		return c.RenderJSON(result)
+	}
+
+	result.Message = fmt.Sprintf("Namespace \"%s\" description changed", nsObject.Name)
+	c.auditLog(fmt.Sprintf("Namespace \"%s\" description changed", nsObject.Name))
+
+	return c.RenderJSON(result)
+}
+
 
 func (c ApiNamespace) checkNamespaceTeamQuota(team string) (err error) {
 	var count int
@@ -416,4 +441,17 @@ func (c ApiNamespace) checkNamespaceUserQuota(username string) (err error) {
 	}
 
 	return
+}
+
+func (c ApiNamespace) checkDeletable(namespace *v1.Namespace) bool {
+	ret := app.RegexpNamespaceDeleteFilter.MatchString(namespace.Name)
+
+	annotationImmortal := app.GetConfigString("k8s.annotation.namespace.immortal", "");
+	if val, ok := namespace.Annotations[annotationImmortal]; ok {
+		if val == "true" {
+			ret = false
+		}
+	}
+
+	return ret
 }

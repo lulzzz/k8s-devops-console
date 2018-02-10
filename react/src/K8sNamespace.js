@@ -22,6 +22,8 @@ class K8sNamespace extends BaseComponent {
                 NamespaceEnvironments: [],
                 Quota: {}
             },
+            namespaceDescriptionEdit: false,
+            namespaceDescriptionEditValue: "",
             selectedNamespace: [],
             selectedNamespaceDelete: [],
             namespacePreview: "",
@@ -33,6 +35,12 @@ class K8sNamespace extends BaseComponent {
         setInterval(() => {
             this.refresh()
         }, 10000);
+
+        $("body").on("click", () => {
+           this.setState({
+               namespaceDescriptionEdit: false
+           });
+        });
     }
 
     loadNamespaces() {
@@ -150,6 +158,49 @@ class K8sNamespace extends BaseComponent {
         });
     }
 
+    handleDescriptionEdit(row) {
+        this.setState({
+            namespaceDescriptionEdit: row.Name,
+            namespaceDescriptionEditValue: row.Description
+        })
+
+        setTimeout(() => {
+            $(".description-edit").focus();
+            $(".description-edit").each((index, el) => {
+                // place cursor at end
+                el.selectionStart =  el.selectionEnd = 10000;
+            });
+        }, 150)
+    }
+
+    handleDescriptionChange(event) {
+        this.setState({
+            namespaceDescriptionEditValue: event.target.value
+        });
+    }
+
+    handleDescriptionSubmit(event) {
+        let jqxhr = $.ajax({
+            type: 'POST',
+            url: "/api/mgmt/namespace/description/" + encodeURI(this.state.namespaceDescriptionEdit),
+            data: {
+                description: this.state.namespaceDescriptionEditValue
+            }
+        }).done((jqxhr) => {
+            if (jqxhr.Message) {
+                this.setState({
+                    globalMessage: jqxhr.Message,
+                    namespaceDescriptionEdit: false
+                });
+                this.refresh();
+            }
+        });
+
+        this.handleXhr(jqxhr);
+        event.preventDefault();
+        return false;
+    }
+
     getNamespaces() {
         let ret = [];
         if (this.state.searchValue !== "") {
@@ -199,7 +250,7 @@ class K8sNamespace extends BaseComponent {
                         <div className={this.state.globalError === '' ? null : 'alert alert-danger'}>{this.state.globalError}</div>
                         <div className={this.state.globalMessage === '' ? 'alert alert-success invisible' : 'alert alert-success'}>{this.state.globalMessage}</div>
                     </div>
-                    <input type="text" className="form-control search-input" placeholder="Search" value={this.state.searchValue} onChange={this.handleSearchChange.bind(this)} />
+                    <input type="text" className="form-control search-input" placeholder="Search" value={this.state.searchValue} onChange={this.handleDescriptionChange}/>
                     <div className="clearfix"></div>
                 </div>
                 <table className="table table-hover table-sm">
@@ -234,7 +285,18 @@ class K8sNamespace extends BaseComponent {
                     <tbody>
                     {namespaces.map((row) =>
                         <tr key={row.Name} onClick={this.selectNamespace.bind(this, row)}>
-                            <td>{row.Name}</td>
+                            <td>
+                                {row.Name}<br/>
+                                {(() => {
+                                   if (this.state.namespaceDescriptionEdit === row.Name) {
+                                       return <form onSubmit={this.handleDescriptionSubmit.bind(this)}>
+                                           <input type="text" className="form-control description-edit" value={this.state.namespaceDescriptionEditValue} onChange={this.handleDescriptionChange.bind(this)}/>
+                                       </form>
+                                   } else {
+                                       return <small className="form-text text-muted editable" onClick={this.handleDescriptionEdit.bind(this, row)}>{row.Description ? row.Description : <i>no description set</i>}</small>
+                                   }
+                                })()}
+                            </td>
                             <td>
                                 {this.renderRowOwner(row)}
                             </td>

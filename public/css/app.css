@@ -68,6 +68,10 @@ button {
     opacity: 1;
 }
 
+.editable {
+    cursor: pointer;
+}
+
 .floating-message {
     position: relative;
     z-index: -1;
