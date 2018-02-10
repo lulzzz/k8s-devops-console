@@ -83,7 +83,7 @@ func (c ApiNamespace) List() revel.Result {
 	return c.RenderJSON(ret)
 }
 
-func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Result {
+func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp, description string) revel.Result {
 	result := struct {
 		Namespace string
 		Message string
@@ -167,6 +167,12 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp string) revel.Resu
 	namespace := v1.Namespace{}
 	namespace.Name = result.Namespace
 	namespace.SetLabels(labels)
+
+	k8sAnnotationDescription := app.GetConfigString("k8s.annotation.namespace.description", "");
+	if namespace.Annotations == nil {
+		namespace.Annotations = map[string]string{}
+	}
+	namespace.Annotations[k8sAnnotationDescription] = description
 
 	if ! c.checkKubernetesNamespaceAccess(namespace) {
 		result.Message = fmt.Sprintf("Access to namespace \"%s\" denied", namespace.Name)

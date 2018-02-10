@@ -12,6 +12,7 @@ class K8sNamespaceModalCreate extends BaseComponent {
             nsEnvironment: "user",
             nsTeam: "",
             nsApp: "",
+            nsDescription: "",
             buttonText: "Create namespace",
             buttonState: "disabled",
             globalError: ""
@@ -32,11 +33,13 @@ class K8sNamespaceModalCreate extends BaseComponent {
             data: {
                 nsEnvironment: this.state.nsEnvironment,
                 nsAreaTeam: this.state.nsTeam,
-                nsApp: this.state.nsApp
+                nsApp: this.state.nsApp,
+                description: this.state.nsDescription
             }
         }).done((jqxhr) => {
             this.setState({
-               nsApp: ""
+               nsApp: "",
+                nsDescription: ""
             });
 
             let namespace = ""
@@ -82,6 +85,12 @@ class K8sNamespaceModalCreate extends BaseComponent {
         this.setState({
             nsApp: event.target.value,
             buttonState: buttonState,
+        });
+    }
+
+    handleNsDescriptionChange(event) {
+        this.setState({
+            nsDescription: event.target.value
         });
     }
 
@@ -155,6 +164,11 @@ class K8sNamespaceModalCreate extends BaseComponent {
                                         <div className="col">
                                             <label htmlFor="inputNsApp" className="inputNsApp">Application</label>
                                             <input type="text" name="nsApp" id="inputNsApp" className="form-control" placeholder="Name" required value={this.state.nsApp} onChange={this.handleNsAppChange.bind(this)} />
+                                        </div>
+                                    </div>
+                                    <div className="row">
+                                        <div className="col">
+                                            <input type="text" name="nsDescription" id="inputNsDescription" className="form-control" placeholder="Description" value={this.state.nsDescription} onChange={this.handleNsDescriptionChange.bind(this)} />
                                         </div>
                                     </div>
                                     <div className="row">

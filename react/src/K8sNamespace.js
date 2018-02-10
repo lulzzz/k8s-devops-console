@@ -290,7 +290,7 @@ class K8sNamespace extends BaseComponent {
                                 {(() => {
                                    if (this.state.namespaceDescriptionEdit === row.Name) {
                                        return <form onSubmit={this.handleDescriptionSubmit.bind(this)}>
-                                           <input type="text" className="form-control description-edit" value={this.state.namespaceDescriptionEditValue} onChange={this.handleDescriptionChange.bind(this)}/>
+                                           <input type="text" className="form-control description-edit" placeholder="Description" value={this.state.namespaceDescriptionEditValue} onChange={this.handleDescriptionChange.bind(this)}/>
                                        </form>
                                    } else {
                                        return <small className="form-text text-muted editable" onClick={this.handleDescriptionEdit.bind(this, row)}>{row.Description ? row.Description : <i>no description set</i>}</small>
@@ -337,7 +337,6 @@ class K8sNamespace extends BaseComponent {
                                         );
                                     }
                                 })()}
-
                             </td>
                         </tr>
                     )}
