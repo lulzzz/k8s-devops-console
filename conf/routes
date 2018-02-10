@@ -15,6 +15,7 @@ GET     /logout                                 Home.Logout
 GET     /cluster                                App.Cluster
 GET     /namespace                              App.Namespace
 GET     /user                                   App.User
+GET     /about                                  App.About
 POST    /api/_login                             ApiLogin.Login
 GET     /api/_app/config                        ApiApp.Config
 GET     /api/cluster/nodes                      ApiCluster.Nodes

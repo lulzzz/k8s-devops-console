@@ -25,3 +25,7 @@ func (c App) Namespace() revel.Result {
 	c.ViewArgs["namespaceEnvironments"] = app.NamespaceEnvironments
 	return c.Render()
 }
+
+func (c App) About() revel.Result {
+	return c.Render()
+}
