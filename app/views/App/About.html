@@ -1,0 +1,27 @@
+{{set . "title" "About"}}
+{{set . "nav" "App.About"}}
+{{template "header.html" .}}
+<div class="container">
+    <div class="row">
+        <img src="/public/img/webdevops.png" style="margin:auto;"/>
+    </div>
+    <div class="row">
+        <p style="margin:auto;text-align: center;">
+            Kubernetes console for DevOps<br>
+            written in Golang and ReactJS<br>using Bootstrap CSS and JQuery<br>
+            <br><a href="https://github.com/webdevops/k8s-devops-console">github.com/webdevops/k8s-devops-console</a>
+        </p>
+    </div>
+    <div class="row">
+        <p style="margin:auto; padding-top: 50px; width: 50%;">
+            This project is dedicated to my colleagues at Daimler Fleetboard GmbH, thanks for this great idea and possiblity to write this application.
+            <i style="display: block; text-align: right;">Markus Blaschke</i>
+        </p>
+    </div>
+    <div class="row">
+        <p style="text-align: right">
+
+        </p>
+    </div>
+</div>
+{{template "footer.html" .}}
