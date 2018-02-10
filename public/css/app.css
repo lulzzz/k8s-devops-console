@@ -72,6 +72,11 @@ table tr.k8s-master {
     background-color: #e3ffde;
 }
 
+
+table.table thead th {
+    vertical-align: top ;
+}
+
 .editable {
     cursor: pointer;
 }
