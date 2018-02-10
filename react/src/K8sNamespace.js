@@ -35,12 +35,6 @@ class K8sNamespace extends BaseComponent {
         setInterval(() => {
             this.refresh()
         }, 10000);
-
-        $("body").on("click", () => {
-           this.setState({
-               namespaceDescriptionEdit: false
-           });
-        });
     }
 
     loadNamespaces() {
@@ -105,10 +99,12 @@ class K8sNamespace extends BaseComponent {
         }, 200);
     }
 
-    selectNamespace(namespace) {
+    handleNamespaceClick(namespace, event) {
         this.setState({
             selectedNamespace: namespace
         });
+        event.stopPropagation();
+        event.nativeEvent.stopPropagation();
     }
 
     resetPermissions(namespace) {
@@ -158,11 +154,18 @@ class K8sNamespace extends BaseComponent {
         });
     }
 
-    handleDescriptionEdit(row) {
+    handleDescriptionEditClose() {
+        this.setState({
+            namespaceDescriptionEdit: false,
+            namespaceDescriptionEditValue: ""
+        });
+    }
+
+    handleDescriptionEdit(row, event) {
         this.setState({
             namespaceDescriptionEdit: row.Name,
             namespaceDescriptionEditValue: row.Description
-        })
+        });
 
         setTimeout(() => {
             $(".description-edit").focus();
@@ -198,6 +201,7 @@ class K8sNamespace extends BaseComponent {
 
         this.handleXhr(jqxhr);
         event.preventDefault();
+        event.stopPropagation();
         return false;
     }
 
@@ -285,7 +289,7 @@ class K8sNamespace extends BaseComponent {
                     </tfoot>
                     <tbody>
                     {namespaces.map((row) =>
-                        <tr key={row.Name} onClick={this.selectNamespace.bind(this, row)}>
+                        <tr key={row.Name} className="k8s-namespace" onClick={this.handleNamespaceClick.bind(this, row)}>
                             <td>
                                 {row.Name}<br/>
                                 {(() => {
