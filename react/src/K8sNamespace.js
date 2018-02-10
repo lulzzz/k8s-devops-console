@@ -241,7 +241,9 @@ class K8sNamespace extends BaseComponent {
 
         if (this.state.isStartup) {
             return (
-                <div></div>
+                <div>
+                    <Spinner active={this.state.isStartup}/>
+                </div>
             )
         }
 
@@ -249,7 +251,6 @@ class K8sNamespace extends BaseComponent {
         let namespaces = this.getNamespaces();
         return (
             <div>
-                <Spinner active={this.state.isStartup}/>
                 <div className="container-toolbar-main">
                     <div className="floating-message">
                         <div className={this.state.globalError === '' ? null : 'alert alert-danger'}>{this.state.globalError}</div>
