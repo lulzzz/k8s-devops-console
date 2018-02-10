@@ -224,26 +224,12 @@ func (c ApiNamespace) Delete(namespace string) revel.Result {
 		Message: "",
 	}
 
-	if result.Namespace == "" {
-		result.Message = "Invalid namespace"
-		c.Response.Status = http.StatusForbidden
-		return c.RenderJSON(result)
-	}
-
 	service := services.Kubernetes{}
-	nsObject, err := service.NamespaceGet(namespace)
 
-	if err != nil {
-		c.Log.Error(fmt.Sprintf("K8S-ERROR: %v", err))
-		result.Message = fmt.Sprintf("%s", err)
-		c.Response.Status = http.StatusInternalServerError
-		return c.RenderJSON(result)
-	}
-
-	if ! c.checkKubernetesNamespaceAccess(*nsObject) {
-		result.Message = fmt.Sprintf("Access to namespace \"%s\" denied", result.Namespace)
-		c.Response.Status = http.StatusForbidden
-		return c.RenderJSON(result)
+	// get namespace
+	nsObject, errResult := c.getNamespace(namespace)
+	if errResult != nil {
+		return *errResult
 	}
 
 	if !c.checkDeletable(nsObject) {
@@ -271,26 +257,10 @@ func (c ApiNamespace) ResetPermissions(namespace string) revel.Result {
 		Message: "",
 	}
 
-	if result.Namespace == "" {
-		result.Message = "Invalid namespace"
-		c.Response.Status = http.StatusForbidden
-		return c.RenderJSON(result)
-	}
-
-	service := services.Kubernetes{}
-	nsObject, err := service.NamespaceGet(namespace)
-
-	if err != nil {
-		c.Log.Error(fmt.Sprintf("K8S-ERROR: %v", err))
-		result.Message = fmt.Sprintf("%s", err)
-		c.Response.Status = http.StatusInternalServerError
-		return c.RenderJSON(result)
-	}
-
-	if ! c.checkKubernetesNamespaceAccess(*nsObject) {
-		result.Message = fmt.Sprintf("Access to namespace \"%s\" denied", result.Namespace)
-		c.Response.Status = http.StatusForbidden
-		return c.RenderJSON(result)
+	// get namespace
+	nsObject, errResult := c.getNamespace(namespace)
+	if errResult != nil {
+		return *errResult
 	}
 
 	if err := c.setNamespacePermissions(nsObject); err != nil {
@@ -313,27 +283,12 @@ func (c ApiNamespace) SetDescription(namespace, description string) revel.Result
 		Namespace: namespace,
 		Message: "",
 	}
-
-	if result.Namespace == "" {
-		result.Message = "Invalid namespace"
-		c.Response.Status = http.StatusForbidden
-		return c.RenderJSON(result)
-	}
-
 	service := services.Kubernetes{}
-	nsObject, err := service.NamespaceGet(namespace)
 
-	if err != nil {
-		c.Log.Error(fmt.Sprintf("K8S-ERROR: %v", err))
-		result.Message = fmt.Sprintf("%s", err)
-		c.Response.Status = http.StatusInternalServerError
-		return c.RenderJSON(result)
-	}
-
-	if ! c.checkKubernetesNamespaceAccess(*nsObject) {
-		result.Message = fmt.Sprintf("Access to namespace \"%s\" denied", result.Namespace)
-		c.Response.Status = http.StatusForbidden
-		return c.RenderJSON(result)
+	// get namespace
+	nsObject, errResult := c.getNamespace(namespace)
+	if errResult != nil {
+		return *errResult
 	}
 
 	k8sAnnotationDescription := app.GetConfigString("k8s.annotation.namespace.description", "");
@@ -460,4 +415,46 @@ func (c ApiNamespace) checkDeletable(namespace *v1.Namespace) bool {
 	}
 
 	return ret
+}
+
+
+func (c ApiNamespace) getNamespace(namespace string) (ns *v1.Namespace, result *revel.Result) {
+	resultMessage := struct {
+		Namespace string
+		Message string
+	} {
+		Namespace: namespace,
+		Message: "",
+	}
+
+	if namespace == "" {
+		resultMessage.Message = "Invalid namespace"
+		c.Response.Status = http.StatusForbidden
+		tmp := c.RenderJSON(resultMessage)
+		result = &tmp
+		return
+	}
+
+	service := services.Kubernetes{}
+	nsObject, err := service.NamespaceGet(namespace)
+
+	if err != nil {
+		c.Log.Error(fmt.Sprintf("K8S-ERROR: %v", err))
+		resultMessage.Message = fmt.Sprintf("%s", err)
+		c.Response.Status = http.StatusInternalServerError
+		tmp := c.RenderJSON(resultMessage)
+		result = &tmp
+		return
+	}
+
+	if ! c.checkKubernetesNamespaceAccess(*nsObject) {
+		resultMessage.Message = fmt.Sprintf("Access to namespace \"%s\" denied", namespace)
+		c.Response.Status = http.StatusForbidden
+		tmp := c.RenderJSON(resultMessage)
+		result = &tmp
+		return
+	}
+
+	ns = nsObject
+	return
 }
