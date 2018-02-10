@@ -312,31 +312,29 @@ class K8sNamespace extends BaseComponent {
                                             return <span className="badge badge-warning">{row.Status}</span>;
                                     }
                                 })()}
+                                <br/>
+                                <span className={row.Deleteable ? 'hidden' : 'badge badge-info'}>Not deletable</span>
                             </td>
                             <td className="toolbox">
                                 {(() => {
-                                    if (row.Deleteable) {
-                                        switch (row.Status) {
-                                            case "Terminating":
-                                                return <button type="button" className="btn btn-danger"
-                                                               disabled>Delete</button>;
-                                            default:
-                                                return (
-                                                    <div className="btn-group" role="group">
-                                                        <button id="btnGroupDrop1" type="button"
-                                                                className="btn btn-secondary dropdown-toggle"
-                                                                data-toggle="dropdown" aria-haspopup="true"
-                                                                aria-expanded="false">
-                                                            Action
-                                                        </button>
-                                                        <div className="dropdown-menu" aria-labelledby="btnGroupDrop1">
-                                                            <a className="dropdown-item" onClick={self.resetPermissions.bind(self, row)}>Reset permissions</a>
-                                                            <a className="dropdown-item" onClick={self.deleteNamespace.bind(self, row)}>Delete</a>
-                                                        </div>
-                                                    </div>
-                                                );
-
-                                        }
+                                    switch (row.Status) {
+                                    case "Terminating":
+                                        return <div></div>
+                                    default:
+                                        return (
+                                            <div className="btn-group" role="group">
+                                                <button id="btnGroupDrop1" type="button"
+                                                        className="btn btn-secondary dropdown-toggle"
+                                                        data-toggle="dropdown" aria-haspopup="true"
+                                                        aria-expanded="false">
+                                                    Action
+                                                </button>
+                                                <div className="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                                                    <a className="dropdown-item" onClick={self.resetPermissions.bind(self, row)}>Reset permissions</a>
+                                                    <a className={row.Deleteable ? 'dropdown-item' : 'hidden'} onClick={self.deleteNamespace.bind(self, row)}>Delete</a>
+                                                </div>
+                                            </div>
+                                        );
                                     }
                                 })()}
 
