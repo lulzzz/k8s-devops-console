@@ -13,6 +13,8 @@ class K8sClusterNodes extends BaseComponent {
             globalMessage: '',
             globalError: '',
             searchValue: '',
+            countMasters: 0,
+            countAgents: 0,
             nodes: [],
         };
 
@@ -25,11 +27,27 @@ class K8sClusterNodes extends BaseComponent {
         let jqxhr = $.get({
             url: '/api/cluster/nodes'
         }).done((jqxhr) => {
+            let countMasters = 0;
+            let countAgents = 0;
+
             this.setState({
                 nodes: jqxhr,
                 globalError: '',
                 isStartup: false
             });
+
+            this.state.nodes.forEach((row) => {
+                if (row.Role === "master") {
+                    countMasters++;
+                } else {
+                    countAgents++;
+                }
+            });
+
+            this.setState({
+                countMasters: countMasters,
+                countAgents: countAgents
+            })
         });
 
         this.handleXhr(jqxhr);
@@ -103,7 +121,7 @@ class K8sClusterNodes extends BaseComponent {
                     <table className="table table-hover table-sm">
                         <thead>
                         <tr>
-                            <th>Name</th>
+                            <th>Server <small>({this.state.countMasters} masters, {this.state.countAgents} agents)</small></th>
                             <th>Network</th>
                             <th>System</th>
                             <th>Version</th>
