@@ -1,5 +1,6 @@
 import React from 'react';
 import $ from 'jquery';
+import onClickOutside from 'react-onclickoutside'
 
 import BaseComponent from './BaseComponent';
 import Spinner from './Spinner';
@@ -83,6 +84,10 @@ class K8sNamespace extends BaseComponent {
         });
     }
 
+    handleClickOutside() {
+        this.handleDescriptionEditClose();
+    }
+
     deleteNamespace(row) {
         this.setState({
             selectedNamespaceDelete: row
@@ -99,12 +104,16 @@ class K8sNamespace extends BaseComponent {
         }, 200);
     }
 
-    handleNamespaceClick(namespace, event) {
+    handleNamespaceClick(row, event) {
+        // close descripton if clicked somewhere else
+        if (this.state.namespaceDescriptionEdit !== false && this.state.namespaceDescriptionEdit !== row.Name) {
+            this.handleDescriptionEditClose();
+        }
+
         this.setState({
-            selectedNamespace: namespace
+            selectedNamespace: row
         });
         event.stopPropagation();
-        event.nativeEvent.stopPropagation();
     }
 
     resetPermissions(namespace) {
@@ -251,6 +260,7 @@ class K8sNamespace extends BaseComponent {
         let namespaces = this.getNamespaces();
         return (
             <div>
+                <div className="click-catcher" onClick={this.handleDescriptionEditClose.bind(this)}></div>
                 <div className="container-toolbar-main">
                     <div className="floating-message">
                         <div className={this.state.globalError === '' ? null : 'alert alert-danger'}>{this.state.globalError}</div>
@@ -299,7 +309,7 @@ class K8sNamespace extends BaseComponent {
                                            <input type="text" className="form-control description-edit" placeholder="Description" value={this.state.namespaceDescriptionEditValue} onChange={this.handleDescriptionChange.bind(this)}/>
                                        </form>
                                    } else {
-                                       return <small className="form-text text-muted editable" onClick={this.handleDescriptionEdit.bind(this, row)}>{row.Description ? row.Description : <i>no description set</i>}</small>
+                                       return <small className="form-text text-muted editable description" onClick={this.handleDescriptionEdit.bind(this, row)}>{row.Description ? row.Description : <i>no description set</i>}</small>
                                    }
                                 })()}
                             </td>
@@ -356,5 +366,5 @@ class K8sNamespace extends BaseComponent {
     }
 }
 
-export default K8sNamespace;
+export default onClickOutside(K8sNamespace);
 
