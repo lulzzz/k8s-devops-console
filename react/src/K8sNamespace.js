@@ -259,8 +259,7 @@ class K8sNamespace extends BaseComponent {
         let self = this;
         let namespaces = this.getNamespaces();
         return (
-            <div>
-                <div className="click-catcher" onClick={this.handleDescriptionEditClose.bind(this)}></div>
+            <div onClick={this.handleDescriptionEditClose.bind(this)}>
                 <div className="container-toolbar-main">
                     <div className="floating-message">
                         <div className={this.state.globalError === '' ? null : 'alert alert-danger'}>{this.state.globalError}</div>
