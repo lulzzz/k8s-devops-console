@@ -12,7 +12,7 @@ RUN go get golang.org/x/oauth2
 RUN go get github.com/dustin/go-humanize
 RUN go get cloud.google.com/go/compute/metadata
 RUN go get github.com/google/go-github/github
-RUN go get github.com/coreos/go-oidc
+RUN go get github.com/mblaschke/go-oidc
 RUN go get gopkg.in/yaml.v2
 
 #############################################

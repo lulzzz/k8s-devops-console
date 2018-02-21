@@ -10,7 +10,7 @@ import (
 	"k8s-devops-console/app/models"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
-	"github.com/coreos/go-oidc"
+	"github.com/mblaschke/go-oidc"
 	githubapi "github.com/google/go-github/github"
 )
 
@@ -89,7 +89,6 @@ func (o *OAuth) FetchUserInfo(token *oauth2.Token) (user models.User, error erro
 			error = err
 			return
 		}
-
 		// WORKAROUND: azuread groups (json array as string?!)
 		var groupList []string
 		for _, val := range aadUserInfo.Groups {
@@ -161,7 +160,8 @@ func (o *OAuth) buildConfig() (config *oauth2.Config) {
 			aadTenant = val
 		}
 
-		provider, err := oidc.NewProvider(ctx, fmt.Sprintf("https://sts.windows.net/%s/", aadTenant))
+		//provider, err := oidc.NewProvider(ctx, fmt.Sprintf("https://sts.windows.net/%s/", aadTenant))
+		provider, err := oidc.NewProvider(ctx, fmt.Sprintf("https://login.microsoftonline.com/%s/", aadTenant))
 		//provider, err := oidc.NewProvider(ctx, fmt.Sprintf("https://login.microsoftonline.com/%s/v2.0", aadTenant))
 		if err != nil {
 			o.error(fmt.Sprintf("oauth.provider AzureAD init failed: %s", err))
@@ -169,7 +169,7 @@ func (o *OAuth) buildConfig() (config *oauth2.Config) {
 
 		o.oidcProvider = provider
 		endpoint = provider.Endpoint()
-		scopes = []string{oidc.ScopeOpenID, "profile", "email", "offline_access", "groups"}
+		scopes = []string{oidc.ScopeOpenID, "profile", "email"}
 	default:
 		o.error(fmt.Sprintf("oauth.provider \"%s\" is not valid", OAuthProvider))
 	}
