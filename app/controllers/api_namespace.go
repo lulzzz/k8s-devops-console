@@ -199,7 +199,7 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp, description strin
 
 	// Namespace creation
 	if newNamespace, err := service.NamespaceCreate(namespace); newNamespace != nil && err == nil {
-		if err := c.setNamespacePermissions(newNamespace); err != nil {
+		if err := c.updateNamespaceSettings(newNamespace); err != nil {
 			result.Message = fmt.Sprintf("%v", err)
 			c.Response.Status = http.StatusForbidden
 			return c.RenderJSON(result)
@@ -263,7 +263,7 @@ func (c ApiNamespace) ResetPermissions(namespace string) revel.Result {
 		return *errResult
 	}
 
-	if err := c.setNamespacePermissions(nsObject); err != nil {
+	if err := c.updateNamespaceSettings(nsObject); err != nil {
 		result.Message = fmt.Sprintf("%v", err)
 		c.Response.Status = http.StatusForbidden
 		return c.RenderJSON(result)
@@ -336,7 +336,19 @@ func (c ApiNamespace) checkNamespaceTeamQuota(team string) (err error) {
 	return
 }
 
-func (c ApiNamespace) setNamespacePermissions(namespace *v1.Namespace) (error error) {
+func (c ApiNamespace) updateNamespaceSettings(namespace *v1.Namespace) (error error) {
+	if err := c.updateNamespacePermissions(namespace); err != nil {
+		return err
+	}
+
+	if err := c.updateNamespaceLimit(namespace); err != nil {
+		return err
+	}
+
+	return
+}
+
+func (c ApiNamespace) updateNamespacePermissions(namespace *v1.Namespace) (error error) {
 	service := services.Kubernetes{}
 
 	user := c.getUser()
@@ -377,6 +389,20 @@ func (c ApiNamespace) setNamespacePermissions(namespace *v1.Namespace) (error er
 	}
 
 	return
+}
+
+func (c ApiNamespace) updateNamespaceLimit(namespace *v1.Namespace) (error error) {
+	service := services.Kubernetes{}
+
+	limitName := app.GetConfigString("k8s.limitrange.namespace.name", "limit");
+	limitDefaultCpu := app.GetConfigString("k8s.limitrange.namespace.default.cpu", "");
+	limitDefaultMemory := app.GetConfigString("k8s.limitrange.namespace.default.memory", "");
+
+	limitDefaultRequestCpu := app.GetConfigString("k8s.limitrange.namespace.defaultrequest.cpu", "");
+	limitDefaultRequestMemory := app.GetConfigString("k8s.limitrange.namespace.defaultrequest.memory", "");
+
+
+	return service.NamespaceLimitCreateOrUpdate(namespace.Name, limitName, limitDefaultCpu, limitDefaultMemory, limitDefaultRequestCpu, limitDefaultRequestMemory)
 }
 
 func (c ApiNamespace) checkNamespaceUserQuota(username string) (err error) {

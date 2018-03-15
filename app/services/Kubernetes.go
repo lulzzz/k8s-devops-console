@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"k8s-devops-console/app"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/api/core/v1"
@@ -313,6 +314,37 @@ func (k *Kubernetes) RoleBindingCreateNamespaceServiceAccount(namespace, service
 	roleBinding.Subjects = []v12.Subject{subject}
 
 	return k.Client().RbacV1().RoleBindings(namespace).Create(roleBinding)
+}
+
+// Create rolebinding for group to gain access to namespace
+func (k *Kubernetes) NamespaceLimitCreateOrUpdate (namespace, name, defaultCpu, defaultMemory, defaultRequestCpu, defaultRequestMemory string) (error error) {
+	limit := v1.LimitRange{}
+
+	getOpts := metav1.GetOptions{}
+	if existingLimit, _ := k.Client().CoreV1().LimitRanges(namespace).Get(name, getOpts); existingLimit != nil && existingLimit.GetUID() != "" {
+		limit = *existingLimit
+	}
+
+	limit.Name = name
+	limit.Spec = v1.LimitRangeSpec{}
+
+	limitRangeItem := v1.LimitRangeItem{}
+	limitRangeItem.Type = "Container"
+
+	limitRangeItem.Default = v1.ResourceList{
+		v1.ResourceCPU: resource.MustParse(defaultCpu),
+		v1.ResourceMemory: resource.MustParse(defaultMemory),
+	}
+
+	limitRangeItem.DefaultRequest = v1.ResourceList{
+		v1.ResourceCPU: resource.MustParse(defaultRequestCpu),
+		v1.ResourceMemory: resource.MustParse(defaultRequestMemory),
+	}
+	limit.Spec.Limits = append(limit.Spec.Limits, limitRangeItem)
+
+	_, error = k.Client().CoreV1().LimitRanges(namespace).Create(&limit)
+
+	return
 }
 
 func (k *Kubernetes) namespaceValidate(name string) (err error) {
