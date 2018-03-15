@@ -345,7 +345,7 @@ class K8sNamespace extends BaseComponent {
                                                     Action
                                                 </button>
                                                 <div className="dropdown-menu" aria-labelledby="btnGroupDrop1">
-                                                    <a className="dropdown-item" onClick={self.resetPermissions.bind(self, row)}>Reset permissions</a>
+                                                    <a className="dropdown-item" onClick={self.resetPermissions.bind(self, row)}>Reset settings</a>
                                                     <a className={row.Deleteable ? 'dropdown-item' : 'hidden'} onClick={self.deleteNamespace.bind(self, row)}>Delete</a>
                                                 </div>
                                             </div>
