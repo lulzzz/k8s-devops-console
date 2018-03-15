@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"k8s-devops-console/app"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/api/core/v1"
@@ -16,6 +15,7 @@ import (
 	v12 "k8s.io/api/rbac/v1"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s-devops-console/app/models"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 type Kubernetes struct {
@@ -318,31 +318,51 @@ func (k *Kubernetes) RoleBindingCreateNamespaceServiceAccount(namespace, service
 
 // Create rolebinding for group to gain access to namespace
 func (k *Kubernetes) NamespaceLimitCreateOrUpdate (namespace, name, defaultCpu, defaultMemory, defaultRequestCpu, defaultRequestMemory string) (error error) {
+	limitExisting := false
 	limit := v1.LimitRange{}
 
 	getOpts := metav1.GetOptions{}
 	if existingLimit, _ := k.Client().CoreV1().LimitRanges(namespace).Get(name, getOpts); existingLimit != nil && existingLimit.GetUID() != "" {
 		limit = *existingLimit
+		limitExisting = true
 	}
 
 	limit.Name = name
-	limit.Spec = v1.LimitRangeSpec{}
+	limit.APIVersion = "v1"
 
-	limitRangeItem := v1.LimitRangeItem{}
-	limitRangeItem.Type = "Container"
+	limitRangeContainerItem := v1.LimitRangeItem{
+		Type: "Container",
+	}
 
-	limitRangeItem.Default = v1.ResourceList{
+	limitRangeContainerItem.Default = v1.ResourceList{
 		v1.ResourceCPU: resource.MustParse(defaultCpu),
 		v1.ResourceMemory: resource.MustParse(defaultMemory),
 	}
 
-	limitRangeItem.DefaultRequest = v1.ResourceList{
+	limitRangeContainerItem.DefaultRequest = v1.ResourceList{
 		v1.ResourceCPU: resource.MustParse(defaultRequestCpu),
 		v1.ResourceMemory: resource.MustParse(defaultRequestMemory),
 	}
-	limit.Spec.Limits = append(limit.Spec.Limits, limitRangeItem)
 
-	_, error = k.Client().CoreV1().LimitRanges(namespace).Create(&limit)
+	// search and replace limit range item
+	limitRangeContainerItemExisting := false
+	for key, item := range limit.Spec.Limits {
+		if item.Type == "Container" {
+			limit.Spec.Limits[key] = limitRangeContainerItem
+			limitRangeContainerItemExisting = true
+		}
+	}
+
+	// add because no limit range item exits
+	if (!limitRangeContainerItemExisting) {
+		limit.Spec.Limits = append(limit.Spec.Limits, limitRangeContainerItem)
+	}
+
+	if (limitExisting) {
+		_, error = k.Client().CoreV1().LimitRanges(namespace).Update(&limit)
+	} else {
+		_, error = k.Client().CoreV1().LimitRanges(namespace).Create(&limit)
+	}
 
 	return
 }
