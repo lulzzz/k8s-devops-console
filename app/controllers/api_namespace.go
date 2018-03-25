@@ -401,8 +401,10 @@ func (c ApiNamespace) updateNamespaceLimit(namespace *v1.Namespace) (error error
 	limitDefaultRequestCpu := app.GetConfigString("k8s.limitrange.namespace.defaultrequest.cpu", "");
 	limitDefaultRequestMemory := app.GetConfigString("k8s.limitrange.namespace.defaultrequest.memory", "");
 
+	limitRatioCpu := app.GetConfigString("k8s.limitrange.namespace.ratio.cpu", "");
+	limitRatioMemory := app.GetConfigString("k8s.limitrange.namespace.ratio.memory", "");
 
-	return service.NamespaceLimitCreateOrUpdate(namespace.Name, limitName, limitDefaultCpu, limitDefaultMemory, limitDefaultRequestCpu, limitDefaultRequestMemory)
+	return service.NamespaceLimitCreateOrUpdate(namespace.Name, limitName, limitDefaultCpu, limitDefaultMemory, limitDefaultRequestCpu, limitDefaultRequestMemory, limitRatioCpu, limitRatioMemory)
 }
 
 func (c ApiNamespace) checkNamespaceUserQuota(username string) (err error) {

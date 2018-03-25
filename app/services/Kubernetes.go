@@ -317,7 +317,7 @@ func (k *Kubernetes) RoleBindingCreateNamespaceServiceAccount(namespace, service
 }
 
 // Create rolebinding for group to gain access to namespace
-func (k *Kubernetes) NamespaceLimitCreateOrUpdate (namespace, name, defaultCpu, defaultMemory, defaultRequestCpu, defaultRequestMemory string) (error error) {
+func (k *Kubernetes) NamespaceLimitCreateOrUpdate (namespace, name, defaultCpu, defaultMemory, defaultRequestCpu, defaultRequestMemory, ratioCpu, ratioMemory string) (error error) {
 	limitExisting := false
 	limit := v1.LimitRange{}
 
@@ -334,14 +334,16 @@ func (k *Kubernetes) NamespaceLimitCreateOrUpdate (namespace, name, defaultCpu, 
 		Type: "Container",
 	}
 
-	limitRangeContainerItem.Default = v1.ResourceList{
-		v1.ResourceCPU: resource.MustParse(defaultCpu),
-		v1.ResourceMemory: resource.MustParse(defaultMemory),
+	if resItem := k.buildResourceListItem(defaultCpu, defaultMemory); resItem != nil {
+		limitRangeContainerItem.Default = *resItem
 	}
 
-	limitRangeContainerItem.DefaultRequest = v1.ResourceList{
-		v1.ResourceCPU: resource.MustParse(defaultRequestCpu),
-		v1.ResourceMemory: resource.MustParse(defaultRequestMemory),
+	if resItem := k.buildResourceListItem(defaultRequestCpu, defaultRequestMemory); resItem != nil {
+		limitRangeContainerItem.DefaultRequest = *resItem
+	}
+
+	if resItem := k.buildResourceListItem(ratioCpu, ratioMemory); resItem != nil {
+		limitRangeContainerItem.MaxLimitRequestRatio = *resItem
 	}
 
 	// search and replace limit range item
@@ -365,6 +367,24 @@ func (k *Kubernetes) NamespaceLimitCreateOrUpdate (namespace, name, defaultCpu, 
 	}
 
 	return
+}
+
+func (k *Kubernetes) buildResourceListItem(cpu, memory string) (*v1.ResourceList) {
+	if cpu == "" && memory == "" {
+		return nil
+	}
+
+	item := v1.ResourceList{}
+
+	if cpu != "" {
+		item[v1.ResourceCPU] = resource.MustParse(cpu)
+	}
+
+	if memory != "" {
+		item[v1.ResourceMemory] = resource.MustParse(memory)
+	}
+
+	return &item
 }
 
 func (k *Kubernetes) namespaceValidate(name string) (err error) {
