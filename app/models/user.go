@@ -63,14 +63,7 @@ func (u *User) initTeams(config *AppConfig) (teams []Team) {
 	for _, teamName := range teamNameList {
 		if _, exists := config.Team[teamName]; exists {
 			teamConfig := config.Team[teamName]
-
-			permissions := []TeamPermissions{}
-
-			for _, val := range teamConfig.RoleBinding {
-				permissions = append(permissions, TeamPermissions{Name: val.Name, Groups: val.Groups, ClusterRole: val.ClusterRole})
-			}
-
-			teams = append(teams, Team{Name: teamName, Permissions: permissions})
+			teams = append(teams, Team{Name: teamName, Permissions: teamConfig.RoleBinding})
 		}
 	}
 

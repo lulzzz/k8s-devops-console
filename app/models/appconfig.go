@@ -16,14 +16,8 @@ type AppConfigGroup struct {
 	Teams []string `yaml:"teams"`
 }
 
-type AppConfigTeamRoleBinding struct {
-	Name string `yaml:"name"`
-	Groups []string `yaml:"groups"`
-	ClusterRole string `yaml:"clusterrole"`
-}
-
 type AppConfigTeam struct {
-	RoleBinding []AppConfigTeamRoleBinding `yaml:"rolebinding"`
+	RoleBinding []TeamPermissions `yaml:"rolebinding"`
 }
 
 type AppConfig struct {

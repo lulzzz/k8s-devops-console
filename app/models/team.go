@@ -5,16 +5,16 @@ import (
 )
 
 type TeamPermissionsServiceAccount struct {
-	Name string
-	Namespace string
+	Name string  `yaml:"name"`
+	Namespace string  `yaml:"namespace"`
 }
 
 type TeamPermissions struct {
-	Name string
-	Groups []string
-	Users []string
-	ServiceAccounts []TeamPermissionsServiceAccount
-	ClusterRole string
+	Name string  `yaml:"name"`
+	Groups []string  `yaml:"groups"`
+	Users []string  `yaml:"users"`
+	ServiceAccounts []TeamPermissionsServiceAccount  `yaml:"serviceaccounts"`
+	ClusterRole string  `yaml:"clusterrole"`
 }
 
 type Team struct {
