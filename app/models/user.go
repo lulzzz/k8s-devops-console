@@ -8,6 +8,7 @@ import (
 )
 
 type User struct {
+	Uuid     string `json:"Uuid"`
 	Id       string `json:"id"`
 	Username string `json:"u"`
 	Email    string `json:"e"`
@@ -63,7 +64,7 @@ func (u *User) initTeams(config *AppConfig) (teams []Team) {
 	for _, teamName := range teamNameList {
 		if _, exists := config.Team[teamName]; exists {
 			teamConfig := config.Team[teamName]
-			teams = append(teams, Team{Name: teamName, Permissions: teamConfig.RoleBinding})
+			teams = append(teams, Team{Name: teamName, K8sPermissions: teamConfig.K8sRoleBinding, AzureRoleAssignments: teamConfig.AzureRoleAssignments})
 		}
 	}
 

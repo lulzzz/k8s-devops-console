@@ -112,6 +112,7 @@ func (o *OAuth) FetchUserInfo(token *oauth2.Token) (user models.User, error erro
 		split := strings.SplitN(aadUserInfo.Username, "@", 2)
 
 		// Build user object
+		user.Uuid = aadUserInfo.UserId
 		user.Id = userPrefix + aadUserInfo.UserId
 		user.Username = split[0]
 		user.Email = aadUserInfo.Username

@@ -30,3 +30,8 @@ func (c App) About() revel.Result {
 	c.ViewArgs["version"] = app.AppVersion
 	return c.Render()
 }
+
+func (c App) AzureRgs() revel.Result {
+	return c.Render()
+}
+
