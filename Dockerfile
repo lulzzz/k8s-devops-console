@@ -2,20 +2,11 @@
 # GET/CACHE GO DEPS
 #############################################
 FROM golang as go-dependencies
-RUN go get github.com/tools/godep
+WORKDIR /app/
+COPY ./glide.yaml /app
+COPY ./glide.lock /app
+RUN curl https://glide.sh/get | sh && glide install
 RUN go get github.com/revel/cmd/revel
-RUN go get k8s.io/client-go/... \
-    && cd $GOPATH/src/k8s.io/client-go \
-    && git checkout v6.0.0 \
-    && godep restore ./...
-RUN go get -u github.com/Azure/azure-sdk-for-go/...
-RUN go get golang.org/x/oauth2
-RUN go get github.com/dustin/go-humanize
-RUN go get cloud.google.com/go/compute/metadata
-RUN go get github.com/google/go-github/github
-RUN go get github.com/mblaschke/go-oidc
-RUN go get gopkg.in/yaml.v2
-RUN go get github.com/hashicorp/go-uuid
 
 #############################################
 # GET/CACHE NPM DEPS
