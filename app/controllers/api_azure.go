@@ -108,7 +108,6 @@ func (c ApiAzure) CreateResourceGroup(resourceGroupName, location, team string, 
 
 		c.Log.Error(fmt.Sprintf("Azure ResourceGroup already exists: \"%s\"%s", resourceGroupName, tagLine))
 		return c.renderJSONError(fmt.Sprintf("Azure ResourceGroup already exists: \"%s\"%s", resourceGroupName, tagLine))
-
 	}
 
 	// translate roles
@@ -119,8 +118,8 @@ func (c ApiAzure) CreateResourceGroup(resourceGroupName, location, team string, 
 		roleDefinitions, err := roleDefinitionsClient.List(ctx, "", filter)
 
 		if len(roleDefinitions.Values()) != 1 {
-			fmt.Errorf("Error generating UUID for Role Assignment: %+v", err)
-			return c.RenderJSON(false)
+			c.Log.Error(fmt.Sprintf("Error generating UUID for Role Assignment: %v", err))
+			return c.renderJSONError(fmt.Sprintf("Error generating UUID for Role Assignment: %v", err))
 		}
 
 
