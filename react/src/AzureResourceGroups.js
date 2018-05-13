@@ -14,7 +14,7 @@ class K8sNamespace extends BaseComponent {
             globalError: "",
             searchValue: "",
             buttonText: "Create Azure ResourceGroup",
-            buttonState: "",
+            requestRunning: false,
             azTeam: "",
             azResourceGroup: "",
             azResourceGroupLocation: "westeurope",
@@ -85,13 +85,13 @@ class K8sNamespace extends BaseComponent {
 
     handleAzResourceGroup(event) {
         this.setState({
-            azResourceGroup: event.target.value
+            azResourceGroup: event.target.value.trim()
         });
     }
 
     handleAzResourceGroupLocation(event) {
         this.setState({
-            azResourceGroupLocation: event.target.value
+            azResourceGroupLocation: event.target.value.trim()
         });
     }
 
@@ -104,7 +104,7 @@ class K8sNamespace extends BaseComponent {
     createResourceGroup() {
         let oldButtonText = this.state.buttonText;
         this.setState({
-            buttonState: "disabled",
+            requestRunning: true,
             buttonText: "Saving...",
             globalError: ""
         });
@@ -125,12 +125,26 @@ class K8sNamespace extends BaseComponent {
             });
         }).always(() => {
             this.setState({
-                buttonState: "",
+                requestRunning: false,
                 buttonText: oldButtonText
             });
         });
 
         this.handleXhr(jqxhr);
+    }
+
+    stateCreateButton() {
+        let state = "";
+
+        if (this.state.requestRunning) {
+            state = "disabled";
+        } else {
+            if (this.state.azResourceGroup === "" || this.state.azTeam === "" || this.state.azResourceGroupLocation === "") {
+                state = "disabled"
+            }
+        }
+
+        return state
     }
 
     getResourceGroups() {
@@ -176,11 +190,11 @@ class K8sNamespace extends BaseComponent {
 
                         <div className="form-group">
                             <label htmlFor="inputNsApp" className="inputNsApp">Azure ResourceGroup</label>
-                            <input type="text" name="nsApp" id="inputNsApp" className="form-control" placeholder="Name" required value={this.state.azResourceGroup} onChange={this.handleAzResourceGroup.bind(this)} />
+                            <input type="text" name="nsApp" id="inputNsApp" className="form-control" placeholder="ResourceGroup name" required value={this.state.azResourceGroup} onChange={this.handleAzResourceGroup.bind(this)} />
                         </div>
                         <div className="form-group">
                             <label htmlFor="inputNsApp" className="inputNsApp">Azure Location</label>
-                            <input type="text" name="nsApp" id="inputNsApp" className="form-control" placeholder="Name" required value={this.state.azResourceGroupLocation} onChange={this.handleAzResourceGroupLocation.bind(this)} />
+                            <input type="text" name="nsApp" id="inputNsApp" className="form-control" placeholder="ResourceGroup location" required value={this.state.azResourceGroupLocation} onChange={this.handleAzResourceGroupLocation.bind(this)} />
                         </div>
                         <div className="form-group">
                             <div className="form-check">
@@ -191,7 +205,7 @@ class K8sNamespace extends BaseComponent {
                     </form>
 
                     <div className="toolbox">
-                        <button type="button" className="btn btn-primary bnt-k8s-namespace-create" disabled={this.state.buttonState} onClick={this.createResourceGroup.bind(this)}>{this.state.buttonText}</button>
+                        <button type="button" className="btn btn-primary bnt-k8s-namespace-create" disabled={this.stateCreateButton()} onClick={this.createResourceGroup.bind(this)}>{this.state.buttonText}</button>
                     </div>
 
                 </div>
