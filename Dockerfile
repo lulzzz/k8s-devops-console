@@ -56,7 +56,7 @@ RUN apk add --no-cache \
         libc6-compat \
     	ca-certificates
 COPY --from=backend /app/ /app/
-USER nobody
+USER 65534
 EXPOSE 9000
 ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["/app/run.sh"]
