@@ -33,7 +33,7 @@ class K8sClusterNodes extends BaseComponent {
             if (this.state.isStartup) {
                 this.setInputFocus();
             }
-            
+
             this.setState({
                 nodes: jqxhr,
                 globalError: '',

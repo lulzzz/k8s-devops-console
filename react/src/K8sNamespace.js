@@ -98,13 +98,19 @@ class K8sNamespace extends BaseComponent {
         });
 
         setTimeout(() => {
-            $("#deleteQuestion").modal('show')
+            $("#deleteQuestion").modal('show');
+            setTimeout(() => {
+                $("#deleteQuestion").find(":input:text:visible:enabled").first().focus();
+            },500);
         }, 200);
     }
 
     createNamespace() {
         setTimeout(() => {
-            $("#createQuestion").modal('show')
+            $("#createQuestion").modal('show');
+            setTimeout(() => {
+                $("#createQuestion").find(":input:text:visible:enabled").first().focus();
+            },500);
         }, 200);
     }
 

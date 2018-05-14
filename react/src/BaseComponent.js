@@ -5,7 +5,7 @@ class BaseComponent extends Component {
 
     setInputFocus() {
         setTimeout( () => {
-            $(":input:text:visible").first().focus();
+            $(":input:text:visible:enabled").first().focus();
         }, 500);
     }
 

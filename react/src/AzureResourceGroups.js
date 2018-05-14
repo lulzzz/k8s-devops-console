@@ -202,12 +202,10 @@ class K8sNamespace extends BaseComponent {
                                 <label className="form-check-label" htmlFor="az-resourcegroup-personal">Personal ResourceGroup (only read access to team)</label>
                             </div>
                         </div>
+                        <div className="toolbox">
+                            <button type="submit" className="btn btn-primary bnt-k8s-namespace-create" disabled={this.stateCreateButton()} onClick={this.createResourceGroup.bind(this)}>{this.state.buttonText}</button>
+                        </div>
                     </form>
-
-                    <div className="toolbox">
-                        <button type="button" className="btn btn-primary bnt-k8s-namespace-create" disabled={this.stateCreateButton()} onClick={this.createResourceGroup.bind(this)}>{this.state.buttonText}</button>
-                    </div>
-
                 </div>
 
             </div>

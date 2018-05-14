@@ -126,6 +126,7 @@ class K8sNamespaceModalCreate extends BaseComponent {
     render() {
         return (
             <div>
+                <form method="post">
                 <div className="modal fade" id="createQuestion" tabIndex="-1" role="dialog" aria-labelledby="createQuestion" aria-hidden="true">
                     <div className="modal-dialog" role="document">
                         <div className="modal-content">
@@ -135,8 +136,7 @@ class K8sNamespaceModalCreate extends BaseComponent {
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
-                            <div className="modal-body">
-                                <form method="post">
+                                <div className="modal-body">
                                     <div className={this.state.globalError === '' ? null : 'alert alert-danger'}>{this.state.globalError}</div>
                                     <div className="row">
                                         <div className="col-3">
@@ -178,15 +178,15 @@ class K8sNamespaceModalCreate extends BaseComponent {
                                             </div>
                                         </div>
                                     </div>
-                                </form>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary bnt-k8s-namespace-cancel" data-dismiss="modal">Cancel</button>
-                                <button type="button" className="btn btn-primary bnt-k8s-namespace-create" disabled={this.state.buttonState} onClick={this.createNamespace.bind(this)}>{this.state.buttonText}</button>
+                                </div>
+                                <div className="modal-footer">
+                                    <button type="button" className="btn btn-secondary bnt-k8s-namespace-cancel" data-dismiss="modal">Cancel</button>
+                                    <button type="submit" className="btn btn-primary bnt-k8s-namespace-create" disabled={this.state.buttonState} onClick={this.createNamespace.bind(this)}>{this.state.buttonText}</button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </form>
             </div>
         );
     }

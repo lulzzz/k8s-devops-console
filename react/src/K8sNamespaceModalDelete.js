@@ -15,7 +15,9 @@ class K8sNamespaceModalDelete extends BaseComponent {
         };
     }
 
-    deleteNamespace() {
+    deleteNamespace(event) {
+        event.preventDefault();
+
         if (!this.props.namespace) {
             return
         }
@@ -75,35 +77,37 @@ class K8sNamespaceModalDelete extends BaseComponent {
     render() {
         return (
             <div>
-                <div className="modal fade" id="deleteQuestion" tabIndex="-1" role="dialog" aria-labelledby="deleteQuestion">
-                    <div className="modal-dialog" role="document">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title" id="exampleModalLabel">Delete namespace</h5>
-                                <button type="button" className="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div className="modal-body">
-                                <div className="row">
-                                    <div className="col">
-                                        <div className={this.state.globalError === '' ? null : 'alert alert-danger'}>{this.state.globalError}</div>
-                                        Do you really want to delete namespace <strong className="k8s-namespace">{this.props.namespace.Name}</strong>?
+                <form method="post">
+                    <div className="modal fade" id="deleteQuestion" tabIndex="-1" role="dialog" aria-labelledby="deleteQuestion">
+                        <div className="modal-dialog" role="document">
+                            <div className="modal-content">
+                                <div className="modal-header">
+                                    <h5 className="modal-title" id="exampleModalLabel">Delete namespace</h5>
+                                    <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div className="modal-body">
+                                    <div className="row">
+                                        <div className="col">
+                                            <div className={this.state.globalError === '' ? null : 'alert alert-danger'}>{this.state.globalError}</div>
+                                            Do you really want to delete namespace <strong className="k8s-namespace">{this.props.namespace.Name}</strong>?
+                                        </div>
+                                    </div>
+                                    <div className="row">
+                                        <div className="col">
+                                            <input type="text" id="inputNsDeleteConfirm" className="form-control" placeholder="Enter namespace for confirmation" required value={this.state.confirmNamespace} onChange={this.handleConfirmNamespace.bind(this)} />
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="row">
-                                    <div className="col">
-                                        <input type="text" id="inputNsDeleteConfirm" className="form-control" placeholder="Enter namespace for confirmation" required value={this.state.confirmNamespace} onChange={this.handleConfirmNamespace.bind(this)} />
-                                    </div>
+                                <div className="modal-footer">
+                                    <button type="button" className="btn btn-primary bnt-k8s-namespace-cancel" data-dismiss="modal">Cancel</button>
+                                    <button type="submit" className="btn btn-secondary bnt-k8s-namespace-delete" disabled={this.renderButtonState()} onClick={this.deleteNamespace.bind(this)}>{this.state.buttonText}</button>
                                 </div>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-primary bnt-k8s-namespace-cancel" data-dismiss="modal">Cancel</button>
-                                <button type="button" className="btn btn-secondary bnt-k8s-namespace-delete" disabled={this.renderButtonState()} onClick={this.deleteNamespace.bind(this)}>{this.state.buttonText}</button>
                             </div>
                         </div>
                     </div>
-                </div>
+                </form>
             </div>
         );
     }
