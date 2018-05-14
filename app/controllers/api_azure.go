@@ -153,6 +153,12 @@ func (c ApiAzure) CreateResourceGroup(resourceGroupName, location, team string, 
 		return c.renderJSONError("Unable to create Azure ResourceGroup")
 	}
 
+	if personal {
+		c.auditLog(fmt.Sprintf("Azure ResourceGroup \"%s\" created (personal access)", resourceGroupName))
+
+	} else {
+		c.auditLog(fmt.Sprintf("Azure ResourceGroup \"%s\" created (team access)", resourceGroupName))
+	}
 
 	// assign role to ResourceGroup
 	for _, roleAssignment := range roleAssignmentList {
