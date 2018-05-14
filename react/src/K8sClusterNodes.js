@@ -30,6 +30,10 @@ class K8sClusterNodes extends BaseComponent {
             let countMasters = 0;
             let countAgents = 0;
 
+            if (this.state.isStartup) {
+                this.setInputFocus();
+            }
+            
             this.setState({
                 nodes: jqxhr,
                 globalError: '',

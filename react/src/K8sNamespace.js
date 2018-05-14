@@ -42,6 +42,10 @@ class K8sNamespace extends BaseComponent {
         let jqxhr = $.get({
             url: '/api/namespace'
         }).done((jqxhr) => {
+            if (this.state.isStartup) {
+                this.setInputFocus();
+            }
+
             this.setState({
                 namespaces: jqxhr,
                 globalError: '',

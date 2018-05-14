@@ -27,6 +27,7 @@ class K8sNamespace extends BaseComponent {
                 NamespaceEnvironments: [],
                 Quota: {}
             },
+            isStartup: true
         };
 
         setInterval(() => {
@@ -45,6 +46,11 @@ class K8sNamespace extends BaseComponent {
 
                 if (!jqxhr.NamespaceEnvironments) {
                     jqxhr.NamespaceEnvironments = [];
+                }
+
+                if (this.state.isStartup) {
+                    console.log("startup");
+                    this.setInputFocus();
                 }
 
                 this.setState({
@@ -69,6 +75,7 @@ class K8sNamespace extends BaseComponent {
 
     componentDidMount() {
         this.loadConfig();
+        this.setInputFocus();
     }
 
     refresh() {
@@ -152,7 +159,7 @@ class K8sNamespace extends BaseComponent {
     }
 
     handleClickOutside() {
-
+        this.setInputFocus();
     }
 
     render() {
@@ -162,16 +169,9 @@ class K8sNamespace extends BaseComponent {
             )
         }
 
-        if (this.state.isStartup) {
-            return (
-                <div>
-                    <Spinner active={this.state.isStartup}/>
-                </div>
-            )
-        }
-
         return (
             <div>
+                <Spinner active={this.state.isStartup}/>
                 <div>
                     <div className={this.state.globalError === '' ? null : 'alert alert-danger'}>{this.state.globalError}</div>
                     <div className={this.state.globalMessage === '' ? 'alert alert-success invisible' : 'alert alert-success'}>{this.state.globalMessage}</div>
@@ -189,17 +189,17 @@ class K8sNamespace extends BaseComponent {
                         </div>
 
                         <div className="form-group">
-                            <label htmlFor="inputNsApp" className="inputNsApp">Azure ResourceGroup</label>
-                            <input type="text" name="nsApp" id="inputNsApp" className="form-control" placeholder="ResourceGroup name" required value={this.state.azResourceGroup} onChange={this.handleAzResourceGroup.bind(this)} />
+                            <label htmlFor="inputNsApp" className="inputRg">Azure ResourceGroup</label>
+                            <input type="text" name="nsApp" id="inputRg" className="form-control" placeholder="ResourceGroup name" required value={this.state.azResourceGroup} onChange={this.handleAzResourceGroup.bind(this)} />
                         </div>
                         <div className="form-group">
-                            <label htmlFor="inputNsApp" className="inputNsApp">Azure Location</label>
-                            <input type="text" name="nsApp" id="inputNsApp" className="form-control" placeholder="ResourceGroup location" required value={this.state.azResourceGroupLocation} onChange={this.handleAzResourceGroupLocation.bind(this)} />
+                            <label htmlFor="inputNsApp" className="inputRgLocation">Azure Location</label>
+                            <input type="text" name="nsApp" id="inputRgLocation" className="form-control" placeholder="ResourceGroup location" required value={this.state.azResourceGroupLocation} onChange={this.handleAzResourceGroupLocation.bind(this)} />
                         </div>
                         <div className="form-group">
                             <div className="form-check">
                                 <input type="checkbox" className="form-check-input" id="az-resourcegroup-personal" checked={this.state.azResourceGroupPersonal} onChange={this.handleAzResourceGroupPersonal.bind(this)} />
-                                <label className="form-check-label" htmlFor="az-resourcegroup-personal">Personal namespace (only read access to team)</label>
+                                <label className="form-check-label" htmlFor="az-resourcegroup-personal">Personal ResourceGroup (only read access to team)</label>
                             </div>
                         </div>
                     </form>
