@@ -49,7 +49,6 @@ class K8sNamespace extends BaseComponent {
                 }
 
                 if (this.state.isStartup) {
-                    console.log("startup");
                     this.setInputFocus();
                 }
 
