@@ -19,7 +19,10 @@ class K8sNamespaceModalCreate extends BaseComponent {
         };
     }
 
-    createNamespace() {
+    createNamespace(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
         let oldButtonText = this.state.buttonText;
         this.setState({
             buttonState: "disabled",

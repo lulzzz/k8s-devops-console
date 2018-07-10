@@ -107,7 +107,10 @@ class K8sNamespace extends BaseComponent {
         });
     }
 
-    createResourceGroup() {
+    createResourceGroup(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
         let oldButtonText = this.state.buttonText;
         this.setState({
             requestRunning: true,

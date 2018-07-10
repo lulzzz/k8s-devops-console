@@ -15,8 +15,9 @@ class K8sNamespaceModalDelete extends BaseComponent {
         };
     }
 
-    deleteNamespace(event) {
-        event.preventDefault();
+    deleteNamespace(e) {
+        e.preventDefault();
+        e.stopPropagation();
 
         if (!this.props.namespace) {
             return
