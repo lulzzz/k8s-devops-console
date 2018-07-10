@@ -16,6 +16,7 @@ GET     /cluster                                App.Cluster
 GET     /namespace                              App.Namespace
 GET     /user                                   App.User
 GET     /about                                  App.About
+GET     /azure/resourcegroups                   App.AzureRgs
 POST    /api/_login                             ApiLogin.Login
 GET     /api/_app/config                        ApiApp.Config
 GET     /api/cluster/nodes                      ApiCluster.Nodes
@@ -25,6 +26,9 @@ PUT     /api/namespace                          ApiNamespace.Create
 POST    /api/mgmt/namespace/resetpermissions/:namespace   ApiNamespace.ResetPermissions
 POST    /api/mgmt/namespace/description/:namespace   ApiNamespace.SetDescription
 GET     /api/user/kubeconfig                    ApiUser.Kubeconfig
+
+
+PUT    /api/azure/resourcegroup                 ApiAzure.CreateResourceGroup
 
 # Ignore favicon requests
 GET     /favicon.ico                            404

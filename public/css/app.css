@@ -27,6 +27,11 @@ th.toolbox {
     text-align: right;
 }
 
+div.toolbox {
+    padding-top: 1rem;
+    text-align: right;
+}
+
 thead td.toolbox,
 thead th.toolbox,
 tfoot td.toolbox,

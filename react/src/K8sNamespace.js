@@ -42,6 +42,10 @@ class K8sNamespace extends BaseComponent {
         let jqxhr = $.get({
             url: '/api/namespace'
         }).done((jqxhr) => {
+            if (this.state.isStartup) {
+                this.setInputFocus();
+            }
+
             this.setState({
                 namespaces: jqxhr,
                 globalError: '',
@@ -94,13 +98,19 @@ class K8sNamespace extends BaseComponent {
         });
 
         setTimeout(() => {
-            $("#deleteQuestion").modal('show')
+            $("#deleteQuestion").modal('show');
+            setTimeout(() => {
+                $("#deleteQuestion").find(":input:text:visible:enabled").first().focus();
+            },500);
         }, 200);
     }
 
     createNamespace() {
         setTimeout(() => {
-            $("#createQuestion").modal('show')
+            $("#createQuestion").modal('show');
+            setTimeout(() => {
+                $("#createQuestion").find(":input:text:visible:enabled").first().focus();
+            },500);
         }, 200);
     }
 

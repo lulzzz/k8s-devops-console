@@ -210,7 +210,7 @@ func (k *Kubernetes) RoleBindingCreateNamespaceUser(namespace, username, userid,
 }
 
 // Create rolebinding for group to gain access to namespace
-func (k *Kubernetes) RoleBindingCreateNamespaceTeam(namespace string, teamName string, permission models.TeamPermissions) (roleBinding *v12.RoleBinding, error error) {
+func (k *Kubernetes) RoleBindingCreateNamespaceTeam(namespace string, teamName string, permission models.TeamK8sPermissions) (roleBinding *v12.RoleBinding, error error) {
 	roleBindName := fmt.Sprintf("team:%s:%s", teamName, permission.Name)
 
 	getOpts := metav1.GetOptions{}

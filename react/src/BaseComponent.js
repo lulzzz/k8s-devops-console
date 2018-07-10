@@ -1,6 +1,13 @@
 import { Component } from 'react';
+import $ from 'jquery';
 
 class BaseComponent extends Component {
+
+    setInputFocus() {
+        setTimeout( () => {
+            $(":input:text:visible:enabled").first().focus();
+        }, 500);
+    }
 
     handleXhr(jqxhr) {
         jqxhr.fail((jqxhr) => {

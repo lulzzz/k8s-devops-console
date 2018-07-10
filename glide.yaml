@@ -1,0 +1,37 @@
+package: k8s-devops-console
+import:
+- package: github.com/Azure/azure-sdk-for-go
+  subpackages:
+  - services/authorization/mgmt/2015-07-01/authorization
+  - services/resources/mgmt/2017-05-10/resources
+- package: github.com/Azure/go-autorest
+  subpackages:
+  - autorest
+  - autorest/azure/auth
+  - autorest/to
+- package: github.com/dustin/go-humanize
+- package: github.com/google/go-github
+  subpackages:
+  - github
+- package: github.com/hashicorp/go-uuid
+- package: github.com/mblaschke/go-oidc
+- package: golang.org/x/oauth2
+  subpackages:
+  - github
+- package: gopkg.in/yaml.v2
+- package: k8s.io/api
+  subpackages:
+  - core/v1
+  - rbac/v1
+- package: k8s.io/apimachinery
+  subpackages:
+  - pkg/api/resource
+  - pkg/apis/meta/v1
+- package: k8s.io/client-go
+  subpackages:
+  - kubernetes
+  - plugin/pkg/client/auth
+  - rest
+  - tools/clientcmd
+- package: github.com/revel/revel
+  version: ^0.19.1

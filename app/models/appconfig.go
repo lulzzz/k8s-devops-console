@@ -17,7 +17,8 @@ type AppConfigGroup struct {
 }
 
 type AppConfigTeam struct {
-	RoleBinding []TeamPermissions `yaml:"rolebinding"`
+	K8sRoleBinding []TeamK8sPermissions `yaml:"rolebinding"`
+	AzureRoleAssignments []TeamAzureRoleAssignments `yaml:"azureroleassignment"`
 }
 
 type AppConfig struct {

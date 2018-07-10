@@ -32,21 +32,29 @@ group:
 
 team:
   devteam0:
-    rolebinding:
+    k8srolebinding:
     - name: "general"
       groups:
       - "cf805c30-f000-baar-foba-123456789000"
+      serviceaccounts:
+      - name: tiller
+        namespace: foobar
+      - name: tiller
+        namespace: foobar2
       clusterrole: admin
+    azureroleassignment:
+    - principalid: "cf805c30-f000-baar-foba-6a0e4faddeea"
+      role: contributor
 
   devteam1:
-    rolebinding:
+    k8srolebinding:
     - name: "general"
       groups:
       - "cf805c30-f000-baar-foba-123456789000"
       clusterrole: admin
 
   devteam2:
-    rolebinding:
+    k8srolebinding:
     - name: "general"
       groups:
       - "cf805c30-f000-baar-foba-123456789002"
@@ -59,42 +67,42 @@ team:
       clusterrole: admin
 
   devteam3:
-    rolebinding:
+    k8srolebinding:
     - name: "general"
       groups:
       - "cf805c30-f000-baar-foba-123456789003"
       clusterrole: admin
 
   devteam4:
-    rolebinding:
+    k8srolebinding:
     - name: "general"
       groups:
       - "cf805c30-f000-baar-foba-123456789004"
       clusterrole: admin
 
   devteam5:
-    rolebinding:
+    k8srolebinding:
     - name: "general"
       groups:
       - "cf805c30-f000-baar-foba-123456789005"
       clusterrole: admin
 
   devteam6:
-    rolebinding:
+    k8srolebinding:
     - name: "general"
       groups:
       - "cf805c30-f000-baar-foba-123456789006"
       clusterrole: admin
 
   devteam7:
-    rolebinding:
+    k8srolebinding:
     - name: "general"
       groups:
       - "cf805c30-f000-baar-foba-123456789007"
       clusterrole: admin
 
   devteam8:
-    rolebinding:
+    k8srolebinding:
     - name: "general"
       groups:
       - "cf805c30-f000-baar-foba-123456789006"
