@@ -6,7 +6,6 @@ import (
 	"errors"
 	"strings"
 	"regexp"
-	"k8s-devops-console/app"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -16,6 +15,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s-devops-console/app/models"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s-devops-console/app"
 )
 
 type Kubernetes struct {
@@ -314,59 +314,6 @@ func (k *Kubernetes) RoleBindingCreateNamespaceServiceAccount(namespace, service
 	roleBinding.Subjects = []v12.Subject{subject}
 
 	return k.Client().RbacV1().RoleBindings(namespace).Create(roleBinding)
-}
-
-// Create rolebinding for group to gain access to namespace
-func (k *Kubernetes) NamespaceLimitCreateOrUpdate (namespace, name, defaultCpu, defaultMemory, defaultRequestCpu, defaultRequestMemory, ratioCpu, ratioMemory string) (error error) {
-	limitExisting := false
-	limit := v1.LimitRange{}
-
-	getOpts := metav1.GetOptions{}
-	if existingLimit, _ := k.Client().CoreV1().LimitRanges(namespace).Get(name, getOpts); existingLimit != nil && existingLimit.GetUID() != "" {
-		limit = *existingLimit
-		limitExisting = true
-	}
-
-	limit.Name = name
-	limit.APIVersion = "v1"
-
-	limitRangeContainerItem := v1.LimitRangeItem{
-		Type: "Container",
-	}
-
-	if resItem := k.buildResourceListItem(defaultCpu, defaultMemory); resItem != nil {
-		limitRangeContainerItem.Default = *resItem
-	}
-
-	if resItem := k.buildResourceListItem(defaultRequestCpu, defaultRequestMemory); resItem != nil {
-		limitRangeContainerItem.DefaultRequest = *resItem
-	}
-
-	if resItem := k.buildResourceListItem(ratioCpu, ratioMemory); resItem != nil {
-		limitRangeContainerItem.MaxLimitRequestRatio = *resItem
-	}
-
-	// search and replace limit range item
-	limitRangeContainerItemExisting := false
-	for key, item := range limit.Spec.Limits {
-		if item.Type == "Container" {
-			limit.Spec.Limits[key] = limitRangeContainerItem
-			limitRangeContainerItemExisting = true
-		}
-	}
-
-	// add because no limit range item exits
-	if (!limitRangeContainerItemExisting) {
-		limit.Spec.Limits = append(limit.Spec.Limits, limitRangeContainerItem)
-	}
-
-	if (limitExisting) {
-		_, error = k.Client().CoreV1().LimitRanges(namespace).Update(&limit)
-	} else {
-		_, error = k.Client().CoreV1().LimitRanges(namespace).Create(&limit)
-	}
-
-	return
 }
 
 func (k *Kubernetes) buildResourceListItem(cpu, memory string) (*v1.ResourceList) {

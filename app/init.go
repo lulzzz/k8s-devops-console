@@ -10,6 +10,11 @@ import (
 	"github.com/revel/revel"
 	"k8s-devops-console/app/models"
 	"github.com/revel/revel/logger"
+	"k8s.io/apimachinery/pkg/runtime"
+		"k8s.io/api/core/v1"
+	"k8s.io/api/settings/v1alpha1"
+	v13 "k8s.io/api/rbac/v1"
+	v12 "k8s.io/api/networking/v1"
 )
 
 var (
@@ -41,7 +46,26 @@ var (
 	NamespaceFilterTeam string
 	AppConfig *models.AppConfig
 	AuditLog logger.MultiLogger
+	KubeObjectList k8sObjectList
 )
+
+type k8sObjectList struct {
+	ConfigMaps map[string]K8sObject
+	ServiceAccounts map[string]K8sObject
+	Roles map[string]K8sObject
+	RoleBindings map[string]K8sObject
+	PodPresets map[string]K8sObject
+	NetworkPolicies map[string]K8sObject
+	LimitRanges map[string]K8sObject
+	ResourceQuotas map[string]K8sObject
+}
+
+type K8sObject struct {
+	Name string
+	Path string
+	Object runtime.Object
+}
+
 
 func init() {
 	// Filters is the default set of global filters.
@@ -84,6 +108,7 @@ func init() {
 	revel.OnAppStart(InitConfig)
 	revel.OnAppStart(InitTemplateEngine)
 	revel.OnAppStart(InitAppConfiguration)
+	revel.OnAppStart(InitK8sObjects)
 }
 
 // HeaderFilter adds common security headers
@@ -179,10 +204,71 @@ func InitAppConfiguration() {
 	}
 }
 
-//func ExampleStartupScript() {
-//	// revel.DevMod and revel.RunMode work here
-//	// Use this script to check for dev mode and set dev/prod startup scripts here!
-//	if revel.DevMode == true {
-//		// Dev mode
-//	}
-//}
+func InitK8sObjects() {
+	var k8sYamlPath string
+	for _, path := range revel.ConfPaths {
+		path = filepath.Join(path, "k8s")
+		if _, err := os.Stat(path); err == nil {
+			k8sYamlPath = path
+		}
+	}
+
+
+	KubeObjectList = k8sObjectList{}
+	KubeObjectList.ConfigMaps = map[string]K8sObject{}
+	KubeObjectList.ServiceAccounts = map[string]K8sObject{}
+	KubeObjectList.Roles = map[string]K8sObject{}
+	KubeObjectList.RoleBindings = map[string]K8sObject{}
+	KubeObjectList.ResourceQuotas = map[string]K8sObject{}
+	KubeObjectList.NetworkPolicies = map[string]K8sObject{}
+	KubeObjectList.PodPresets = map[string]K8sObject{}
+	KubeObjectList.LimitRanges = map[string]K8sObject{}
+
+	if k8sYamlPath != "" {
+		var fileList []string
+		filepath.Walk(k8sYamlPath, func(path string, f os.FileInfo, err error) error {
+			if IsK8sConfigFile(path) {
+				fileList = append(fileList, path)
+			}
+			return nil
+		})
+
+
+		for _, path := range fileList {
+			item := K8sObject{}
+			item.Path = path
+			item.Object = KubeParseConfig(path)
+
+			switch(item.Object.GetObjectKind().GroupVersionKind().Kind) {
+			case "ConfigMap":
+				item.Name = item.Object.(*v1.ConfigMap).Name
+				KubeObjectList.ConfigMaps[item.Name] = item
+			case "ServiceAccount":
+				item.Name = item.Object.(*v1.ServiceAccount).Name
+				KubeObjectList.ServiceAccounts[item.Name] = item
+			case "Role":
+				item.Name = item.Object.(*v13.Role).Name
+				KubeObjectList.Roles[item.Name] = item
+			case "RoleBinding":
+				item.Name = item.Object.(*v13.RoleBinding).Name
+				KubeObjectList.RoleBindings[item.Name] = item
+			case "NetworkPolicy":
+				item.Name = item.Object.(*v12.NetworkPolicy).Name
+				KubeObjectList.NetworkPolicies[item.Name] = item
+			case "LimitRange":
+				item.Name = item.Object.(*v1.LimitRange).Name
+				KubeObjectList.LimitRanges[item.Name] = item
+			case "PodPreset":
+				item.Name = item.Object.(*v1alpha1.PodPreset).Name
+				KubeObjectList.PodPresets[item.Name] = item
+			case "ResourceQuota":
+				item.Name = item.Object.(*v1.ResourceQuota).Name
+				KubeObjectList.ResourceQuotas[item.Name] = item
+			default:
+				panic("Not allowed object found: " + item.Object.GetObjectKind().GroupVersionKind().Kind)
+			}
+
+		}
+
+	}
+}

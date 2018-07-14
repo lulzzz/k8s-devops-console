@@ -11,6 +11,9 @@ import (
 	"k8s-devops-console/app"
 	"k8s-devops-console/app/services"
 	"k8s-devops-console/app/toolbox"
+	v12 "k8s.io/api/rbac/v1"
+	v13 "k8s.io/api/networking/v1"
+	"k8s.io/api/settings/v1alpha1"
 )
 
 type ResultNamespace struct {
@@ -341,7 +344,7 @@ func (c ApiNamespace) updateNamespaceSettings(namespace *v1.Namespace) (error er
 		return err
 	}
 
-	if err := c.updateNamespaceLimit(namespace); err != nil {
+	if err := c.updateNamespaceObjects(namespace); err != nil {
 		return err
 	}
 
@@ -391,20 +394,68 @@ func (c ApiNamespace) updateNamespacePermissions(namespace *v1.Namespace) (error
 	return
 }
 
-func (c ApiNamespace) updateNamespaceLimit(namespace *v1.Namespace) (error error) {
+
+
+func (c ApiNamespace) updateNamespaceObjects(namespace *v1.Namespace) (error error) {
 	service := services.Kubernetes{}
 
-	limitName := app.GetConfigString("k8s.limitrange.namespace.name", "limit");
-	limitDefaultCpu := app.GetConfigString("k8s.limitrange.namespace.default.cpu", "");
-	limitDefaultMemory := app.GetConfigString("k8s.limitrange.namespace.default.memory", "");
+	for _, kubeObject := range app.KubeObjectList.ConfigMaps {
+		error = service.NamespaceEnsureConfigMap(namespace.Name, kubeObject.Name, kubeObject.Object.(*v1.ConfigMap))
+		if error != nil {
+			return
+		}
+	}
 
-	limitDefaultRequestCpu := app.GetConfigString("k8s.limitrange.namespace.defaultrequest.cpu", "");
-	limitDefaultRequestMemory := app.GetConfigString("k8s.limitrange.namespace.defaultrequest.memory", "");
+	for _, kubeObject := range app.KubeObjectList.ServiceAccounts {
+		error = service.NamespaceEnsureServiceAccount(namespace.Name, kubeObject.Name, kubeObject.Object.(*v1.ServiceAccount))
+		if error != nil {
+			return
+		}
+	}
 
-	limitRatioCpu := app.GetConfigString("k8s.limitrange.namespace.ratio.cpu", "");
-	limitRatioMemory := app.GetConfigString("k8s.limitrange.namespace.ratio.memory", "");
+	for _, kubeObject := range app.KubeObjectList.Roles {
+		error = service.NamespaceEnsureRole(namespace.Name, kubeObject.Name, kubeObject.Object.(*v12.Role))
+		if error != nil {
+			return
+		}
+	}
 
-	return service.NamespaceLimitCreateOrUpdate(namespace.Name, limitName, limitDefaultCpu, limitDefaultMemory, limitDefaultRequestCpu, limitDefaultRequestMemory, limitRatioCpu, limitRatioMemory)
+	for _, kubeObject := range app.KubeObjectList.RoleBindings {
+		error = service.NamespaceEnsureRoleBindings(namespace.Name, kubeObject.Name, kubeObject.Object.(*v12.RoleBinding))
+		if error != nil {
+			return
+		}
+	}
+
+	for _, kubeObject := range app.KubeObjectList.NetworkPolicies {
+		error = service.NamespaceEnsureNetworkPolicy(namespace.Name, kubeObject.Name, kubeObject.Object.(*v13.NetworkPolicy))
+		if error != nil {
+			return
+		}
+	}
+
+	for _, kubeObject := range app.KubeObjectList.LimitRanges {
+		error = service.NamespaceEnsureLimitRange(namespace.Name, kubeObject.Name, kubeObject.Object.(*v1.LimitRange))
+		if error != nil {
+			return
+		}
+	}
+
+	for _, kubeObject := range app.KubeObjectList.PodPresets {
+		error = service.NamespaceEnsurePodPreset(namespace.Name, kubeObject.Name, kubeObject.Object.(*v1alpha1.PodPreset))
+		if error != nil {
+			return
+		}
+	}
+
+	for _, kubeObject := range app.KubeObjectList.ResourceQuotas {
+		error = service.NamespaceEnsureResourceQuota(namespace.Name, kubeObject.Name, kubeObject.Object.(*v1.ResourceQuota))
+		if error != nil {
+			return
+		}
+	}
+
+	return
 }
 
 func (c ApiNamespace) checkNamespaceUserQuota(username string) (err error) {
