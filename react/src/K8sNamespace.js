@@ -142,13 +142,23 @@ class K8sNamespace extends BaseComponent {
     }
 
     renderRowOwner(row) {
+        let personalBadge = "";
+        let teamBadge = "";
+        let userBadge = "";
+
         if (row.Name.match(/^user-[^-]+-.*/i)) {
-            return <span><span className="badge badge-light">Personal Namespace</span></span>
-        } else if (row.OwnerTeam !== "") {
-            return <span><span className="badge badge-light">Team</span>{row.OwnerTeam}</span>
-        } else if (row.OwnerUser !== "") {
-            return <span><span className="badge badge-light">User</span>{row.OwnerUser}</span>
+            personalBadge = <span className="badge badge-light">Personal Namespace</span>
         }
+
+        if (row.OwnerTeam !== "") {
+            teamBadge = <div><span className="badge badge-light">Team: {row.OwnerTeam}</span></div>
+        }
+
+        if (row.OwnerUser !== "") {
+            userBadge = <div><span className="badge badge-light">User: {row.OwnerUser}</span></div>
+        }
+
+        return <span className="badge-list">{personalBadge}{teamBadge}{userBadge}</span>
     }
 
     handleNamespaceDeletion(namespace) {

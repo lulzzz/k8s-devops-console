@@ -101,6 +101,10 @@ table.table thead th {
     white-space: nowrap;
 }
 
+.badge-list {
+    font-size: 0.9rem;
+}
+
 .spinner-wrapper {
     position: absolute;
     z-index: 999;
