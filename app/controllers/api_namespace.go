@@ -116,22 +116,22 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp, description strin
 		return c.RenderJSON(result)
 	}
 
+	// team filter check
+	if !app.RegexpNamespaceTeam.MatchString(nsAreaTeam)  {
+		result.Message = "Invalid team value"
+		c.Response.Status = http.StatusForbidden
+		return c.RenderJSON(result)
+	}
+
+	// membership check
+	if ! c.checkTeamMembership(nsAreaTeam) {
+		result.Message = fmt.Sprintf("Access to team \"%s\" denied", nsAreaTeam)
+		c.Response.Status = http.StatusForbidden
+		return c.RenderJSON(result)
+	}
+
 	switch (nsEnvironment) {
 	case "team":
-		// team filter check
-		if !app.RegexpNamespaceTeam.MatchString(nsAreaTeam)  {
-			result.Message = "Invalid team value"
-			c.Response.Status = http.StatusForbidden
-			return c.RenderJSON(result)
-		}
-
-		// membership check
-		if ! c.checkTeamMembership(nsAreaTeam) {
-			result.Message = fmt.Sprintf("Access to team \"%s\" denied", nsAreaTeam)
-			c.Response.Status = http.StatusForbidden
-			return c.RenderJSON(result)
-		}
-
 		// quota check
 		if err := c.checkNamespaceTeamQuota(nsAreaTeam); err != nil {
 			result.Message = fmt.Sprintf("Error: %v", err)
@@ -151,6 +151,7 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp, description strin
 
 		result.Namespace = fmt.Sprintf("user-%s-%s", username, nsApp)
 		labels[labelUserKey] = strings.ToLower(username)
+		labels[labelTeamKey] = strings.ToLower(nsAreaTeam)
 	default:
 		// membership check
 		if !c.checkTeamMembership(nsAreaTeam) {

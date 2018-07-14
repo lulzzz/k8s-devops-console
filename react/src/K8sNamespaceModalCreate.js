@@ -151,18 +151,12 @@ class K8sNamespaceModalCreate extends BaseComponent {
                                             </select>
                                         </div>
                                         <div>
-                                            <div className={this.state.nsEnvironment === 'user' ? null : 'hidden'}>
-                                                <label htmlFor="inputNsAreaUser">User</label>
-                                                <input type="text" name="nsAreaUser" id="inputNsAreaUser" className="form-control namespace-area-user" value={this.props.config.User.Username} onChange={this.handleNsUserChange.bind(this)} disabled />
-                                            </div>
-                                            <div className={this.state.nsEnvironment === 'user' ? 'hidden' : null}>
-                                                <label htmlFor="inputNsAreaTeam">Team</label>
-                                                <select name="nsAreaTeam" id="inputNsAreaTeam" className="form-control namespace-area-team" value={this.state.nsTeam} onChange={this.handleNsTeamChange.bind(this)}>
-                                                    {this.props.config.Teams.map((row, value) =>
-                                                        <option key={row.Id} value={row.Name}>{row.Name}</option>
-                                                    )}
-                                                </select>
-                                            </div>
+                                            <label htmlFor="inputNsAreaTeam">Team</label>
+                                            <select name="nsAreaTeam" id="inputNsAreaTeam" className="form-control namespace-area-team" value={this.state.nsTeam} onChange={this.handleNsTeamChange.bind(this)}>
+                                                {this.props.config.Teams.map((row, value) =>
+                                                    <option key={row.Id} value={row.Name}>{row.Name}</option>
+                                                )}
+                                            </select>
                                         </div>
                                         <div className="col">
                                             <label htmlFor="inputNsApp" className="inputNsApp">Application</label>
