@@ -355,6 +355,10 @@ func (c ApiNamespace) updateNamespaceSettings(namespace *v1.Namespace) (error er
 func (c ApiNamespace) updateNamespacePermissions(namespace *v1.Namespace) (error error) {
 	service := services.Kubernetes{}
 
+	if !c.checkNamespaceOwnership(namespace) {
+		return errors.New(fmt.Sprintf("Namespace \"%s\" not owned by current user", namespace.Name))
+	}
+
 	user := c.getUser()
 	username := user.Username
 	k8sUsername := user.Id
@@ -494,9 +498,34 @@ func (c ApiNamespace) checkDeletable(namespace *v1.Namespace) bool {
 		}
 	}
 
+	if !c.checkNamespaceOwnership(namespace) {
+		ret = false
+	}
+
 	return ret
 }
 
+
+func (c ApiNamespace) checkNamespaceOwnership(namespace *v1.Namespace) bool {
+	user := c.getUser()
+	username := user.Username
+
+	labelUserKey := app.GetConfigString("k8s.label.user", "user");
+	labelTeamKey := app.GetConfigString("k8s.label.team", "team");
+
+	if labelUserVal, ok := namespace.Labels[labelUserKey]; ok {
+		if (labelUserVal == username) {
+			return true
+		}
+	} else if labelTeamVal, ok := namespace.Labels[labelTeamKey]; ok {
+		// Team rolebinding
+		if _, err := user.GetTeam(labelTeamVal); err == nil {
+			return true
+		}
+	}
+
+	return false
+}
 
 func (c ApiNamespace) getNamespace(namespace string) (ns *v1.Namespace, result *revel.Result) {
 	resultMessage := struct {
