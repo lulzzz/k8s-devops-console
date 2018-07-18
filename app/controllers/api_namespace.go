@@ -252,7 +252,7 @@ func (c ApiNamespace) Delete(namespace string) revel.Result {
 	return c.RenderJSON(result)
 }
 
-func (c ApiNamespace) ResetPermissions(namespace string) revel.Result {
+func (c ApiNamespace) ResetRBAC(namespace string) revel.Result {
 	result := struct {
 		Namespace string
 		Message string
@@ -267,7 +267,7 @@ func (c ApiNamespace) ResetPermissions(namespace string) revel.Result {
 		return *errResult
 	}
 
-	if err := c.updateNamespaceSettings(nsObject); err != nil {
+	if err := c.updateNamespacePermissions(nsObject); err != nil {
 		result.Message = fmt.Sprintf("%v", err)
 		c.Response.Status = http.StatusForbidden
 		return c.RenderJSON(result)
@@ -275,6 +275,34 @@ func (c ApiNamespace) ResetPermissions(namespace string) revel.Result {
 
 	result.Message = fmt.Sprintf("Namespace \"%s\" permissions resetted", nsObject.Name)
 	c.auditLog(fmt.Sprintf("Namespace \"%s\" permissions resetted", nsObject.Name))
+
+	return c.RenderJSON(result)
+}
+
+
+func (c ApiNamespace) ResetSettings(namespace string) revel.Result {
+	result := struct {
+		Namespace string
+		Message string
+	} {
+		Namespace: namespace,
+		Message: "",
+	}
+
+	// get namespace
+	nsObject, errResult := c.getNamespace(namespace)
+	if errResult != nil {
+		return *errResult
+	}
+
+	if err := c.updateNamespaceObjects(nsObject); err != nil {
+		result.Message = fmt.Sprintf("%v", err)
+		c.Response.Status = http.StatusForbidden
+		return c.RenderJSON(result)
+	}
+
+	result.Message = fmt.Sprintf("Namespace \"%s\" settings resetted", nsObject.Name)
+	c.auditLog(fmt.Sprintf("Namespace \"%s\" settings resetted", nsObject.Name))
 
 	return c.RenderJSON(result)
 }

@@ -126,10 +126,25 @@ class K8sNamespace extends BaseComponent {
         event.stopPropagation();
     }
 
-    resetPermissions(namespace) {
+    resetRbac(namespace) {
         let jqxhr = $.ajax({
             type: 'POST',
-            url: "/api/mgmt/namespace/resetpermissions/" + encodeURI(namespace.Name)
+            url: "/api/mgmt/namespace/reset/rbac/" + encodeURI(namespace.Name)
+        }).done((jqxhr) => {
+            if (jqxhr.Message) {
+                this.setState({
+                    globalMessage: jqxhr.Message
+                });
+            }
+        });
+
+        this.handleXhr(jqxhr);
+    }
+
+    resetSettings(namespace) {
+        let jqxhr = $.ajax({
+            type: 'POST',
+            url: "/api/mgmt/namespace/reset/settings/" + encodeURI(namespace.Name)
         }).done((jqxhr) => {
             if (jqxhr.Message) {
                 this.setState({
@@ -365,7 +380,8 @@ class K8sNamespace extends BaseComponent {
                                                     Action
                                                 </button>
                                                 <div className="dropdown-menu" aria-labelledby="btnGroupDrop1">
-                                                    <a className="dropdown-item" onClick={self.resetPermissions.bind(self, row)}>Reset settings</a>
+                                                    <a className="dropdown-item" onClick={self.resetRbac.bind(self, row)}>Reset RBAC</a>
+                                                    <a className="dropdown-item" onClick={self.resetSettings.bind(self, row)}>Reset settings</a>
                                                     <a className={row.Deleteable ? 'dropdown-item' : 'hidden'} onClick={self.deleteNamespace.bind(self, row)}>Delete</a>
                                                 </div>
                                             </div>

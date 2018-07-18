@@ -23,8 +23,9 @@ GET     /api/cluster/nodes                      ApiCluster.Nodes
 GET     /api/namespace                          ApiNamespace.List
 DELETE  /api/namespace/:namespace               ApiNamespace.Delete
 PUT     /api/namespace                          ApiNamespace.Create
-POST    /api/mgmt/namespace/resetpermissions/:namespace   ApiNamespace.ResetPermissions
-POST    /api/mgmt/namespace/description/:namespace   ApiNamespace.SetDescription
+POST    /api/mgmt/namespace/reset/rbac/:namespace       ApiNamespace.ResetRBAC
+POST    /api/mgmt/namespace/reset/settings/:namespace   ApiNamespace.ResetSettings
+POST    /api/mgmt/namespace/description/:namespace      ApiNamespace.SetDescription
 GET     /api/user/kubeconfig                    ApiUser.Kubeconfig
 
 
