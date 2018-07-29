@@ -15,7 +15,7 @@ import (
 	"k8s.io/api/settings/v1alpha1"
 	v13 "k8s.io/api/rbac/v1"
 	v12 "k8s.io/api/networking/v1"
-)
+	)
 
 var (
 	// AppVersion revel app version (ldflags)
@@ -46,21 +46,22 @@ var (
 	NamespaceFilterTeam string
 	AppConfig *models.AppConfig
 	AuditLog logger.MultiLogger
-	KubeObjectList k8sObjectList
+	KubeObjectListTeam *KubeObjectList
+	KubeObjectListUser *KubeObjectList
 )
 
-type k8sObjectList struct {
-	ConfigMaps map[string]K8sObject
-	ServiceAccounts map[string]K8sObject
-	Roles map[string]K8sObject
-	RoleBindings map[string]K8sObject
-	PodPresets map[string]K8sObject
-	NetworkPolicies map[string]K8sObject
-	LimitRanges map[string]K8sObject
-	ResourceQuotas map[string]K8sObject
+type KubeObjectList struct {
+	ConfigMaps map[string]KubeObject
+	ServiceAccounts map[string]KubeObject
+	Roles map[string]KubeObject
+	RoleBindings map[string]KubeObject
+	PodPresets map[string]KubeObject
+	NetworkPolicies map[string]KubeObject
+	LimitRanges map[string]KubeObject
+	ResourceQuotas map[string]KubeObject
 }
 
-type K8sObject struct {
+type KubeObject struct {
 	Name string
 	Path string
 	Object runtime.Object
@@ -97,7 +98,6 @@ func init() {
 		}
 
 
-
 	// Register startup functions with OnAppStart
 	// revel.DevMode and revel.RunMode only work inside of OnAppStart. See Example Startup Script
 	// ( order dependent )
@@ -108,7 +108,8 @@ func init() {
 	revel.OnAppStart(InitConfig)
 	revel.OnAppStart(InitTemplateEngine)
 	revel.OnAppStart(InitAppConfiguration)
-	revel.OnAppStart(InitK8sObjects)
+	revel.OnAppStart(InitKubeObjectsTeam)
+	revel.OnAppStart(InitKubeObjectsUser)
 }
 
 // HeaderFilter adds common security headers
@@ -204,7 +205,34 @@ func InitAppConfiguration() {
 	}
 }
 
-func InitK8sObjects() {
+func createKubeObjectList() (list *KubeObjectList) {
+	list = &KubeObjectList{}
+	list.ConfigMaps = map[string]KubeObject{}
+	list.ServiceAccounts = map[string]KubeObject{}
+	list.Roles = map[string]KubeObject{}
+	list.RoleBindings = map[string]KubeObject{}
+	list.ResourceQuotas = map[string]KubeObject{}
+	list.NetworkPolicies = map[string]KubeObject{}
+	list.PodPresets = map[string]KubeObject{}
+	list.LimitRanges = map[string]KubeObject{}
+	return
+}
+
+func InitKubeObjectsTeam() {
+	KubeObjectListTeam = createKubeObjectList()
+
+	addK8sConfigsFromPath("k8s/general", KubeObjectListTeam)
+	addK8sConfigsFromPath("k8s/team", KubeObjectListTeam)
+}
+
+func InitKubeObjectsUser() {
+	KubeObjectListUser = createKubeObjectList()
+
+	addK8sConfigsFromPath("k8s/general", KubeObjectListUser)
+	addK8sConfigsFromPath("k8s/user", KubeObjectListUser)
+}
+
+func addK8sConfigsFromPath(path string, list *KubeObjectList) {
 	var k8sYamlPath string
 	for _, path := range revel.ConfPaths {
 		path = filepath.Join(path, "k8s")
@@ -212,17 +240,6 @@ func InitK8sObjects() {
 			k8sYamlPath = path
 		}
 	}
-
-
-	KubeObjectList = k8sObjectList{}
-	KubeObjectList.ConfigMaps = map[string]K8sObject{}
-	KubeObjectList.ServiceAccounts = map[string]K8sObject{}
-	KubeObjectList.Roles = map[string]K8sObject{}
-	KubeObjectList.RoleBindings = map[string]K8sObject{}
-	KubeObjectList.ResourceQuotas = map[string]K8sObject{}
-	KubeObjectList.NetworkPolicies = map[string]K8sObject{}
-	KubeObjectList.PodPresets = map[string]K8sObject{}
-	KubeObjectList.LimitRanges = map[string]K8sObject{}
 
 	if k8sYamlPath != "" {
 		var fileList []string
@@ -235,40 +252,38 @@ func InitK8sObjects() {
 
 
 		for _, path := range fileList {
-			item := K8sObject{}
+			item := KubeObject{}
 			item.Path = path
 			item.Object = KubeParseConfig(path)
 
 			switch(item.Object.GetObjectKind().GroupVersionKind().Kind) {
 			case "ConfigMap":
 				item.Name = item.Object.(*v1.ConfigMap).Name
-				KubeObjectList.ConfigMaps[item.Name] = item
+				list.ConfigMaps[item.Name] = item
 			case "ServiceAccount":
 				item.Name = item.Object.(*v1.ServiceAccount).Name
-				KubeObjectList.ServiceAccounts[item.Name] = item
+				list.ServiceAccounts[item.Name] = item
 			case "Role":
 				item.Name = item.Object.(*v13.Role).Name
-				KubeObjectList.Roles[item.Name] = item
+				list.Roles[item.Name] = item
 			case "RoleBinding":
 				item.Name = item.Object.(*v13.RoleBinding).Name
-				KubeObjectList.RoleBindings[item.Name] = item
+				list.RoleBindings[item.Name] = item
 			case "NetworkPolicy":
 				item.Name = item.Object.(*v12.NetworkPolicy).Name
-				KubeObjectList.NetworkPolicies[item.Name] = item
+				list.NetworkPolicies[item.Name] = item
 			case "LimitRange":
 				item.Name = item.Object.(*v1.LimitRange).Name
-				KubeObjectList.LimitRanges[item.Name] = item
+				list.LimitRanges[item.Name] = item
 			case "PodPreset":
 				item.Name = item.Object.(*v1alpha1.PodPreset).Name
-				KubeObjectList.PodPresets[item.Name] = item
+				list.PodPresets[item.Name] = item
 			case "ResourceQuota":
 				item.Name = item.Object.(*v1.ResourceQuota).Name
-				KubeObjectList.ResourceQuotas[item.Name] = item
+				list.ResourceQuotas[item.Name] = item
 			default:
 				panic("Not allowed object found: " + item.Object.GetObjectKind().GroupVersionKind().Kind)
 			}
-
 		}
-
 	}
 }

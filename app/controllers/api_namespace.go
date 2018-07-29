@@ -432,61 +432,78 @@ func (c ApiNamespace) updateNamespacePermissions(namespace *v1.Namespace) (error
 func (c ApiNamespace) updateNamespaceObjects(namespace *v1.Namespace) (error error) {
 	service := services.Kubernetes{}
 
-	for _, kubeObject := range app.KubeObjectList.ConfigMaps {
-		error = service.NamespaceEnsureConfigMap(namespace.Name, kubeObject.Name, kubeObject.Object.(*v1.ConfigMap))
-		if error != nil {
-			return
+	kubeObjectList := &app.KubeObjectList{}
+
+
+	labelUserKey := app.GetConfigString("k8s.label.user", "user");
+	labelTeamKey := app.GetConfigString("k8s.label.team", "team");
+
+	if _, ok := namespace.Labels[labelUserKey]; ok {
+		// user kubernetes config
+		kubeObjectList = app.KubeObjectListUser
+	} else if _, ok := namespace.Labels[labelTeamKey]; ok {
+		// team kubernetes config
+		kubeObjectList = app.KubeObjectListTeam
+	}
+
+	if kubeObjectList != nil {
+		for _, kubeObject := range kubeObjectList.ConfigMaps {
+			error = service.NamespaceEnsureConfigMap(namespace.Name, kubeObject.Name, kubeObject.Object.(*v1.ConfigMap))
+			if error != nil {
+				return
+			}
+		}
+
+		for _, kubeObject := range kubeObjectList.ServiceAccounts {
+			error = service.NamespaceEnsureServiceAccount(namespace.Name, kubeObject.Name, kubeObject.Object.(*v1.ServiceAccount))
+			if error != nil {
+				return
+			}
+		}
+
+		for _, kubeObject := range kubeObjectList.Roles {
+			error = service.NamespaceEnsureRole(namespace.Name, kubeObject.Name, kubeObject.Object.(*v12.Role))
+			if error != nil {
+				return
+			}
+		}
+
+		for _, kubeObject := range kubeObjectList.RoleBindings {
+			error = service.NamespaceEnsureRoleBindings(namespace.Name, kubeObject.Name, kubeObject.Object.(*v12.RoleBinding))
+			if error != nil {
+				return
+			}
+		}
+
+		for _, kubeObject := range kubeObjectList.NetworkPolicies {
+			error = service.NamespaceEnsureNetworkPolicy(namespace.Name, kubeObject.Name, kubeObject.Object.(*v13.NetworkPolicy))
+			if error != nil {
+				return
+			}
+		}
+
+		for _, kubeObject := range kubeObjectList.LimitRanges {
+			error = service.NamespaceEnsureLimitRange(namespace.Name, kubeObject.Name, kubeObject.Object.(*v1.LimitRange))
+			if error != nil {
+				return
+			}
+		}
+
+		for _, kubeObject := range kubeObjectList.PodPresets {
+			error = service.NamespaceEnsurePodPreset(namespace.Name, kubeObject.Name, kubeObject.Object.(*v1alpha1.PodPreset))
+			if error != nil {
+				return
+			}
+		}
+
+		for _, kubeObject := range kubeObjectList.ResourceQuotas {
+			error = service.NamespaceEnsureResourceQuota(namespace.Name, kubeObject.Name, kubeObject.Object.(*v1.ResourceQuota))
+			if error != nil {
+				return
+			}
 		}
 	}
 
-	for _, kubeObject := range app.KubeObjectList.ServiceAccounts {
-		error = service.NamespaceEnsureServiceAccount(namespace.Name, kubeObject.Name, kubeObject.Object.(*v1.ServiceAccount))
-		if error != nil {
-			return
-		}
-	}
-
-	for _, kubeObject := range app.KubeObjectList.Roles {
-		error = service.NamespaceEnsureRole(namespace.Name, kubeObject.Name, kubeObject.Object.(*v12.Role))
-		if error != nil {
-			return
-		}
-	}
-
-	for _, kubeObject := range app.KubeObjectList.RoleBindings {
-		error = service.NamespaceEnsureRoleBindings(namespace.Name, kubeObject.Name, kubeObject.Object.(*v12.RoleBinding))
-		if error != nil {
-			return
-		}
-	}
-
-	for _, kubeObject := range app.KubeObjectList.NetworkPolicies {
-		error = service.NamespaceEnsureNetworkPolicy(namespace.Name, kubeObject.Name, kubeObject.Object.(*v13.NetworkPolicy))
-		if error != nil {
-			return
-		}
-	}
-
-	for _, kubeObject := range app.KubeObjectList.LimitRanges {
-		error = service.NamespaceEnsureLimitRange(namespace.Name, kubeObject.Name, kubeObject.Object.(*v1.LimitRange))
-		if error != nil {
-			return
-		}
-	}
-
-	for _, kubeObject := range app.KubeObjectList.PodPresets {
-		error = service.NamespaceEnsurePodPreset(namespace.Name, kubeObject.Name, kubeObject.Object.(*v1alpha1.PodPreset))
-		if error != nil {
-			return
-		}
-	}
-
-	for _, kubeObject := range app.KubeObjectList.ResourceQuotas {
-		error = service.NamespaceEnsureResourceQuota(namespace.Name, kubeObject.Name, kubeObject.Object.(*v1.ResourceQuota))
-		if error != nil {
-			return
-		}
-	}
 
 	return
 }
