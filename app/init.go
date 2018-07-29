@@ -234,7 +234,7 @@ func InitKubeNamespaceConfig() {
 			k8sDefaultPath = ""
 		}
 		KubeNamespaceConfig["_default"] = buildKubeConfigList("", k8sDefaultPath)
-		
+
 		// parse config for each subpath as environment
 		err := filepath.Walk(k8sYamlPath, func(path string, info os.FileInfo, err error) error {
 			// jump into base dir
