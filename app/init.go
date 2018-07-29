@@ -46,8 +46,7 @@ var (
 	NamespaceFilterTeam string
 	AppConfig *models.AppConfig
 	AuditLog logger.MultiLogger
-	KubeObjectListTeam *KubeObjectList
-	KubeObjectListUser *KubeObjectList
+	KubeNamespaceConfig map[string]*KubeObjectList
 )
 
 type KubeObjectList struct {
@@ -108,8 +107,7 @@ func init() {
 	revel.OnAppStart(InitConfig)
 	revel.OnAppStart(InitTemplateEngine)
 	revel.OnAppStart(InitAppConfiguration)
-	revel.OnAppStart(InitKubeObjectsTeam)
-	revel.OnAppStart(InitKubeObjectsUser)
+	revel.OnAppStart(InitKubeNamespaceConfig)
 }
 
 // HeaderFilter adds common security headers
@@ -218,21 +216,7 @@ func createKubeObjectList() (list *KubeObjectList) {
 	return
 }
 
-func InitKubeObjectsTeam() {
-	KubeObjectListTeam = createKubeObjectList()
-
-	addK8sConfigsFromPath("k8s/general", KubeObjectListTeam)
-	addK8sConfigsFromPath("k8s/team", KubeObjectListTeam)
-}
-
-func InitKubeObjectsUser() {
-	KubeObjectListUser = createKubeObjectList()
-
-	addK8sConfigsFromPath("k8s/general", KubeObjectListUser)
-	addK8sConfigsFromPath("k8s/user", KubeObjectListUser)
-}
-
-func addK8sConfigsFromPath(path string, list *KubeObjectList) {
+func InitKubeNamespaceConfig() {
 	var k8sYamlPath string
 	for _, path := range revel.ConfPaths {
 		path = filepath.Join(path, "k8s")
@@ -241,49 +225,93 @@ func addK8sConfigsFromPath(path string, list *KubeObjectList) {
 		}
 	}
 
+	KubeNamespaceConfig = map[string]*KubeObjectList{}
+
 	if k8sYamlPath != "" {
-		var fileList []string
-		filepath.Walk(k8sYamlPath, func(path string, f os.FileInfo, err error) error {
-			if IsK8sConfigFile(path) {
-				fileList = append(fileList, path)
+		// default namespace settings
+		k8sDefaultPath := filepath.Join(k8sYamlPath, "_default")
+		if (!IsDirectory(k8sDefaultPath)) {
+			k8sDefaultPath = ""
+		}
+		KubeNamespaceConfig["_default"] = buildKubeConfigList("", k8sDefaultPath)
+		
+		// parse config for each subpath as environment
+		err := filepath.Walk(k8sYamlPath, func(path string, info os.FileInfo, err error) error {
+			// jump into base dir
+			if path == k8sYamlPath {
+				return nil
+			}
+
+			// parse configs in dir but don't jump recursive into it
+			if info.IsDir() && path != k8sDefaultPath {
+				KubeNamespaceConfig[info.Name()] = buildKubeConfigList(k8sDefaultPath, path)
+				return filepath.SkipDir
 			}
 			return nil
 		})
 
+		if err != nil {
+			panic(err)
+		}
+	}
+}
 
-		for _, path := range fileList {
-			item := KubeObject{}
-			item.Path = path
-			item.Object = KubeParseConfig(path)
+func buildKubeConfigList(defaultPath, path string) (*KubeObjectList) {
+	kubeConfigList := createKubeObjectList()
 
-			switch(item.Object.GetObjectKind().GroupVersionKind().Kind) {
-			case "ConfigMap":
-				item.Name = item.Object.(*v1.ConfigMap).Name
-				list.ConfigMaps[item.Name] = item
-			case "ServiceAccount":
-				item.Name = item.Object.(*v1.ServiceAccount).Name
-				list.ServiceAccounts[item.Name] = item
-			case "Role":
-				item.Name = item.Object.(*v13.Role).Name
-				list.Roles[item.Name] = item
-			case "RoleBinding":
-				item.Name = item.Object.(*v13.RoleBinding).Name
-				list.RoleBindings[item.Name] = item
-			case "NetworkPolicy":
-				item.Name = item.Object.(*v12.NetworkPolicy).Name
-				list.NetworkPolicies[item.Name] = item
-			case "LimitRange":
-				item.Name = item.Object.(*v1.LimitRange).Name
-				list.LimitRanges[item.Name] = item
-			case "PodPreset":
-				item.Name = item.Object.(*v1alpha1.PodPreset).Name
-				list.PodPresets[item.Name] = item
-			case "ResourceQuota":
-				item.Name = item.Object.(*v1.ResourceQuota).Name
-				list.ResourceQuotas[item.Name] = item
-			default:
-				panic("Not allowed object found: " + item.Object.GetObjectKind().GroupVersionKind().Kind)
-			}
+	if defaultPath != "" {
+		addK8sConfigsFromPath(defaultPath, kubeConfigList)
+	}
+
+	if path != "" {
+		addK8sConfigsFromPath(path, kubeConfigList)
+	}
+
+	return kubeConfigList
+}
+
+func addK8sConfigsFromPath(configPath string, list *KubeObjectList) {
+	var fileList []string
+	filepath.Walk(configPath, func(path string, f os.FileInfo, err error) error {
+		if IsK8sConfigFile(path) {
+			fileList = append(fileList, path)
+		}
+		return nil
+	})
+
+
+	for _, path := range fileList {
+		item := KubeObject{}
+		item.Path = path
+		item.Object = KubeParseConfig(path)
+
+		switch(item.Object.GetObjectKind().GroupVersionKind().Kind) {
+		case "ConfigMap":
+			item.Name = item.Object.(*v1.ConfigMap).Name
+			list.ConfigMaps[item.Name] = item
+		case "ServiceAccount":
+			item.Name = item.Object.(*v1.ServiceAccount).Name
+			list.ServiceAccounts[item.Name] = item
+		case "Role":
+			item.Name = item.Object.(*v13.Role).Name
+			list.Roles[item.Name] = item
+		case "RoleBinding":
+			item.Name = item.Object.(*v13.RoleBinding).Name
+			list.RoleBindings[item.Name] = item
+		case "NetworkPolicy":
+			item.Name = item.Object.(*v12.NetworkPolicy).Name
+			list.NetworkPolicies[item.Name] = item
+		case "LimitRange":
+			item.Name = item.Object.(*v1.LimitRange).Name
+			list.LimitRanges[item.Name] = item
+		case "PodPreset":
+			item.Name = item.Object.(*v1alpha1.PodPreset).Name
+			list.PodPresets[item.Name] = item
+		case "ResourceQuota":
+			item.Name = item.Object.(*v1.ResourceQuota).Name
+			list.ResourceQuotas[item.Name] = item
+		default:
+			panic("Not allowed object found: " + item.Object.GetObjectKind().GroupVersionKind().Kind)
 		}
 	}
 }

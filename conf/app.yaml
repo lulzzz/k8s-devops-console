@@ -32,7 +32,7 @@ group:
 
 team:
   devteam0:
-    k8srolebinding:
+    rolebinding:
     - name: "general"
       groups:
       - "cf805c30-f000-baar-foba-123456789000"
@@ -47,14 +47,14 @@ team:
       role: contributor
 
   devteam1:
-    k8srolebinding:
+    rolebinding:
     - name: "general"
       groups:
       - "cf805c30-f000-baar-foba-123456789000"
       clusterrole: admin
 
   devteam2:
-    k8srolebinding:
+    rolebinding:
     - name: "general"
       groups:
       - "cf805c30-f000-baar-foba-123456789002"
@@ -67,42 +67,42 @@ team:
       clusterrole: admin
 
   devteam3:
-    k8srolebinding:
+    rolebinding:
     - name: "general"
       groups:
       - "cf805c30-f000-baar-foba-123456789003"
       clusterrole: admin
 
   devteam4:
-    k8srolebinding:
+    rolebinding:
     - name: "general"
       groups:
       - "cf805c30-f000-baar-foba-123456789004"
       clusterrole: admin
 
   devteam5:
-    k8srolebinding:
+    rolebinding:
     - name: "general"
       groups:
       - "cf805c30-f000-baar-foba-123456789005"
       clusterrole: admin
 
   devteam6:
-    k8srolebinding:
+    rolebinding:
     - name: "general"
       groups:
       - "cf805c30-f000-baar-foba-123456789006"
       clusterrole: admin
 
   devteam7:
-    k8srolebinding:
+    rolebinding:
     - name: "general"
       groups:
       - "cf805c30-f000-baar-foba-123456789007"
       clusterrole: admin
 
   devteam8:
-    k8srolebinding:
+    rolebinding:
     - name: "general"
       groups:
       - "cf805c30-f000-baar-foba-123456789006"

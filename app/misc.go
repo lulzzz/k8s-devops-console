@@ -9,7 +9,12 @@ import (
 )
 
 func IsDirectory(path string) (bool) {
-	fileInfo, _ := os.Stat(path)
+	fileInfo, err := os.Stat(path)
+
+	if err != nil {
+		return false
+	}
+
 	return fileInfo.IsDir()
 }
 

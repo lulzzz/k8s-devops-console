@@ -97,6 +97,7 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp, description strin
 
 	labelUserKey := app.GetConfigString("k8s.label.user", "user");
 	labelTeamKey := app.GetConfigString("k8s.label.team", "team");
+	labelEnvKey := app.GetConfigString("k8s.label.environment", "environment");
 
 	user := c.getUser()
 	username := user.Username
@@ -108,6 +109,7 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp, description strin
 	}
 
 	labels := map[string]string{}
+	labels[labelEnvKey] = nsEnvironment
 
 	// check if environment is allowed
 	if ! toolbox.SliceStringContains(app.NamespaceEnvironments, nsEnvironment) {
@@ -253,6 +255,7 @@ func (c ApiNamespace) Delete(namespace string) revel.Result {
 }
 
 func (c ApiNamespace) ResetRBAC(namespace string) revel.Result {
+	var err error
 	result := struct {
 		Namespace string
 		Message string
@@ -265,6 +268,12 @@ func (c ApiNamespace) ResetRBAC(namespace string) revel.Result {
 	nsObject, errResult := c.getNamespace(namespace)
 	if errResult != nil {
 		return *errResult
+	}
+
+	if nsObject, err = c.updateNamespace(nsObject); err != nil {
+		result.Message = fmt.Sprintf("%v", err)
+		c.Response.Status = http.StatusForbidden
+		return c.RenderJSON(result)
 	}
 
 	if err := c.updateNamespacePermissions(nsObject); err != nil {
@@ -279,8 +288,8 @@ func (c ApiNamespace) ResetRBAC(namespace string) revel.Result {
 	return c.RenderJSON(result)
 }
 
-
 func (c ApiNamespace) ResetSettings(namespace string) revel.Result {
+	var err error
 	result := struct {
 		Namespace string
 		Message string
@@ -295,6 +304,12 @@ func (c ApiNamespace) ResetSettings(namespace string) revel.Result {
 		return *errResult
 	}
 
+	if nsObject, err = c.updateNamespace(nsObject); err != nil {
+		result.Message = fmt.Sprintf("%v", err)
+		c.Response.Status = http.StatusForbidden
+		return c.RenderJSON(result)
+	}
+
 	if err := c.updateNamespaceObjects(nsObject); err != nil {
 		result.Message = fmt.Sprintf("%v", err)
 		c.Response.Status = http.StatusForbidden
@@ -305,6 +320,31 @@ func (c ApiNamespace) ResetSettings(namespace string) revel.Result {
 	c.auditLog(fmt.Sprintf("Namespace \"%s\" settings resetted", nsObject.Name))
 
 	return c.RenderJSON(result)
+}
+
+func (c ApiNamespace) updateNamespace(namespace *v1.Namespace) (*v1.Namespace, error) {
+	doUpdate := false
+	service := services.Kubernetes{}
+
+	labelEnvKey := app.GetConfigString("k8s.label.environment", "environment");
+
+	// add env label
+	if _, ok := namespace.Labels[labelEnvKey]; !ok {
+		parts := strings.Split(namespace.Name, "-")
+
+		if len(parts) > 1 {
+			namespace.Labels[labelEnvKey] = parts[0]
+			doUpdate = true
+		}
+	}
+
+	if doUpdate {
+		if _, err := service.NamespaceUpdate(namespace); err != nil {
+			return namespace, err
+		}
+	}
+
+	return namespace, nil
 }
 
 func (c ApiNamespace) SetDescription(namespace, description string) revel.Result {
@@ -427,23 +467,23 @@ func (c ApiNamespace) updateNamespacePermissions(namespace *v1.Namespace) (error
 	return
 }
 
-
-
 func (c ApiNamespace) updateNamespaceObjects(namespace *v1.Namespace) (error error) {
+	var kubeObjectList *app.KubeObjectList
 	service := services.Kubernetes{}
 
-	kubeObjectList := &app.KubeObjectList{}
+	labelEnvKey := app.GetConfigString("k8s.label.environment", "environment");
 
+	if environment, ok := namespace.Labels[labelEnvKey]; ok {
+		if configObjects, ok := app.KubeNamespaceConfig[environment]; ok {
+			kubeObjectList = configObjects
+		}
+	}
 
-	labelUserKey := app.GetConfigString("k8s.label.user", "user");
-	labelTeamKey := app.GetConfigString("k8s.label.team", "team");
-
-	if _, ok := namespace.Labels[labelUserKey]; ok {
-		// user kubernetes config
-		kubeObjectList = app.KubeObjectListUser
-	} else if _, ok := namespace.Labels[labelTeamKey]; ok {
-		// team kubernetes config
-		kubeObjectList = app.KubeObjectListTeam
+	// if empty, try default
+	if kubeObjectList == nil {
+		if configObjects, ok := app.KubeNamespaceConfig["_default"]; ok {
+			kubeObjectList = configObjects
+		}
 	}
 
 	if kubeObjectList != nil {
