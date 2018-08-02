@@ -431,10 +431,11 @@ func (c ApiNamespace) updateNamespacePermissions(namespace *v1.Namespace) (error
 	username := user.Username
 	k8sUsername := user.Id
 
+	privateNamespaceEnabled := app.GetConfigBoolean("k8s.user.namespaceRole.private", true)
 	labelUserKey := app.GetConfigString("k8s.label.user", "user");
 	labelTeamKey := app.GetConfigString("k8s.label.team", "team");
 
-	if labelUserVal, ok := namespace.Labels[labelUserKey]; ok {
+	if labelUserVal, ok := namespace.Labels[labelUserKey]; privateNamespaceEnabled && ok {
 		if (labelUserVal == username) {
 			// User rolebinding
 			role := app.GetConfigString("k8s.user.namespaceRole", "admin")

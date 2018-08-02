@@ -157,6 +157,27 @@ func GetConfigInt(key string, defaultValue int) (ret int) {
 	return
 }
 
+func GetConfigBoolean(key string, defaultValue bool) (ret bool) {
+	ret = defaultValue
+
+	// try to get config
+	if val, exists := revel.Config.String(key); exists && val != "" {
+		if i, err := strconv.ParseBool(val); err == nil {
+			return i
+		}
+	}
+
+	// try to get config default
+	if val, exists := revel.Config.String(key + ".default"); exists && val != "" {
+		if i, err := strconv.ParseBool(val); err == nil {
+			return i
+		}
+	}
+
+	return
+}
+
+
 func InitLogger() {
 	AuditLog = revel.AppLog.New("system", "audit")
 }
