@@ -1,5 +1,6 @@
 import React from 'react';
 import $ from 'jquery';
+import {CopyToClipboard} from 'react-copy-to-clipboard';
 
 import BaseComponent from './BaseComponent';
 
@@ -112,9 +113,7 @@ class K8sNamespaceModalCreate extends BaseComponent {
                 break;
         }
 
-        namespace = namespace.toLowerCase().replace(/_/g, "");
-
-        return <span id="namespacePreview">{namespace}</span>;
+        return namespace.toLowerCase().replace(/_/g, "");
     }
 
     componentWillMount() {
@@ -171,7 +170,10 @@ class K8sNamespaceModalCreate extends BaseComponent {
                                     <div className="row">
                                         <div className="col">
                                             <div className="p-3 mb-2 bg-light text-dark">
-                                                <i>Preview: </i>{this.previewNamespace()}
+                                                <i>Preview: </i><span id="namespacePreview">{this.previewNamespace()}</span>
+                                                <CopyToClipboard text={this.previewNamespace()}>
+                                                    <button className="button-copy" onClick={this.handlePreventEvent.bind(this)}></button>
+                                                </CopyToClipboard>
                                             </div>
                                         </div>
                                     </div>

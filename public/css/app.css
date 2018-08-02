@@ -101,8 +101,47 @@ table.table thead th {
     white-space: nowrap;
 }
 
+.k8s-namespace .button-copy {
+    visibility: hidden;
+}
+
+.k8s-namespace:hover .button-copy {
+    visibility: visible;
+}
+
 .badge-list {
     font-size: 0.9rem;
+}
+
+.button-copy {
+    display: inline-block;
+    vertical-align: middle;
+    cursor: pointer;
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9Ijk2cHgiIGhlaWdodD0iMTAwcHgiIHZpZXdCb3g9IjAgMCA5NiAxMDAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDk2IDEwMCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+CjxnPgoJPHBhdGggZD0iTTgxLjkwMiwxMS4wODRIMTguMDg5Yy0zLjQ3OCwwLTYuMjg4LDIuOTM2LTYuMjg4LDYuNTYxVjkzLjEyYzAsMy42MjUsMi44MTEsNi41NjIsNi4yODgsNi41NjJoNjMuODEzICAgYzMuNDc3LDAsNi4yOS0yLjkzOCw2LjI5LTYuNTYyVjE3LjY0NUM4OC4xOTIsMTQuMDIxLDg1LjM3OSwxMS4wODQsODEuOTAyLDExLjA4NHogTTgyLjY1Nyw5MC4wOTNjMCwwLDAuMTczLDEuNTE3LTAuNTM3LDIuMzAzICAgYy0wLjcyMSwwLjgtMi4wNTUsMC42OTEtMi4wNTUsMC42OTFsLTYwLjcwOSwwLjAzMmMwLDAtMC44NTYtMC4wMTMtMS41MDktMC43NjJjLTAuNTY0LTAuNjQ2LTAuNTU3LTIuMDE1LTAuNTU3LTIuMDE1ICAgbDAuMDIyLTcwLjQyOWMwLDAsMC0xLjA0MywwLjYxMS0xLjZjMC42NTktMC42MDIsMS42MTItMC42NTMsMS42MTItMC42NTNoNjAuNzIxYzAsMCwxLjE1MS0wLjAzMiwxLjY4OSwwLjUxOSAgIGMwLjczMiwwLjc0OSwwLjcxLDEuNTM2LDAuNzEsMS41MzZWOTAuMDkzeiIvPgoJPGc+CgkJPHBhdGggZD0iTTU1LjcyMiwyLjI5OGMwLDEuMzkyLTEuMjU0LDIuNTE5LTIuNzk5LDIuNTE5aC01LjU5NmMtMS41NDYsMC0yLjc5OS0xLjEyNy0yLjc5OS0yLjUxOWwwLDAgICAgYzAtMS4zOSwxLjI1My0yLjUxOCwyLjc5OS0yLjUxOGg1LjU5NkM1NC40NjgtMC4yMiw1NS43MjIsMC45MDgsNTUuNzIyLDIuMjk4TDU1LjcyMiwyLjI5OHoiLz4KCQk8cGF0aCBkPSJNNjIuMTEzLDcuNzQ4YzAtMS40NTgtMC4xMzQtMy44ODgtMS4zMjQtMy44ODhIMzkuMjQzYy0xLjExMywwLTEuMzgsMi40NC0xLjM2MiwzLjg4M0w2Mi4xMTMsNy43NDh6Ii8+CgkJPHBhdGggZD0iTTY3LjMwNywxMi43OThjMC0yLjA4NC0wLjE5MS01LjU1Ni0xLjg5MS01LjU1NmgtMzAuNzhjLTEuNTkyLDAtMS45NzIsMy40ODgtMS45NDcsNS41NDlMNjcuMzA3LDEyLjc5OHoiLz4KCTwvZz4KCTxyZWN0IHg9IjM3LjE5MSIgeT0iMzIuMDQ4IiB3aWR0aD0iMzUuNDM5IiBoZWlnaHQ9IjMuMTUxIi8+Cgk8cGF0aCBkPSJNMjYuMDQ0LDQzLjI4OHY3Ljg3NGg3Ljg3NnYtNy44NzRIMjYuMDQ0eiBNMjcuMjI0LDQ5Ljk3di01LjUxaDUuNTE0djUuNTFIMjcuMjI0eiIvPgoJPHJlY3QgeD0iMzcuMTkxIiB5PSI0Ny4wMTIiIHdpZHRoPSIzNS40MzkiIGhlaWdodD0iMy4xNSIvPgoJPHJlY3QgeD0iMzcuMTkxIiB5PSI2MS4zNTkiIHdpZHRoPSIzNS40MzkiIGhlaWdodD0iMy4xNSIvPgoJPHJlY3QgeD0iMzcuMTkxIiB5PSI3NS4zNjUiIHdpZHRoPSIzNS40MzkiIGhlaWdodD0iMy4xNDkiLz4KCTxwYXRoIGQ9Ik0yNi4wNDQsMjguMzI0djcuODc1aDcuODc2di03Ljg3NUgyNi4wNDR6IE0yNy4yMjQsMzUuMDA2di01LjUwOWg1LjUxNHY1LjUwOUgyNy4yMjR6Ii8+Cgk8cGF0aCBkPSJNMjYuMDQ0LDU3LjYzNnY3Ljg3NGg3Ljg3NnYtNy44NzRIMjYuMDQ0eiBNMjcuMjI0LDY0LjMxOHYtNS41MTFoNS41MTR2NS41MTFIMjcuMjI0eiIvPgoJPHBhdGggZD0iTTI2LjA0NCw3MS42NDF2Ny44NzRoNy44NzZ2LTcuODc0SDI2LjA0NHogTTI3LjIyNCw3OC4zMjJ2LTUuNTFoNS41MTR2NS41MUgyNy4yMjR6Ii8+CjwvZz4KPC9zdmc+');
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: contain;
+    width: 1rem;
+    height: 1rem;
+    border: 0;
+}
+
+.button-copy:focus {
+    -webkit-animation-name: wiggle;
+    -moz-animation-name: wiggle;
+    -ms-animation-name: wiggle;
+    -o-animation-name: wiggle;
+    animation-name: wiggle;
+    -webkit-animation-timing-function: ease-in;
+    -moz-animation-timing-function: ease-in;
+    -ms-animation-timing-function: ease-in;
+    -o-animation-timing-function: ease-in;
+    animation-timing-function: ease-in;
+    -webkit-animation-duration: 1s;
+    -moz-animation-duration: 1s;
+    -ms-animation-duration: 1s;
+    -o-animation-duration: 1s;
+    animation-duration: 1s;
 }
 
 .spinner-wrapper {
@@ -166,4 +205,74 @@ table.table thead th {
            transform: scaleY(1.0);
            -webkit-transform: scaleY(1.0);
        }
+}
+
+@-webkit-keyframes wiggle {
+    0% { -webkit-transform: skewX(9deg); }
+    10% { -webkit-transform: skewX(-8deg); }
+    20% { -webkit-transform: skewX(7deg); }
+    30% { -webkit-transform: skewX(-6deg); }
+    40% { -webkit-transform: skewX(5deg); }
+    50% { -webkit-transform: skewX(-4deg); }
+    60% { -webkit-transform: skewX(3deg); }
+    70% { -webkit-transform: skewX(-2deg); }
+    80% { -webkit-transform: skewX(1deg); }
+    90% { -webkit-transform: skewX(0deg); }
+    100% { -webkit-transform: skewX(0deg); }
+}
+
+@-moz-keyframes wiggle {
+    0% { -moz-transform: skewX(9deg); }
+    10% { -moz-transform: skewX(-8deg); }
+    20% { -moz-transform: skewX(7deg); }
+    30% { -moz-transform: skewX(-6deg); }
+    40% { -moz-transform: skewX(5deg); }
+    50% { -moz-transform: skewX(-4deg); }
+    60% { -moz-transform: skewX(3deg); }
+    70% { -moz-transform: skewX(-2deg); }
+    80% { -moz-transform: skewX(1deg); }
+    90% { -moz-transform: skewX(0deg); }
+    100% { -moz-transform: skewX(0deg); }
+}
+
+@-ms-keyframes wiggle {
+    0% { -ms-transform: skewX(9deg); }
+    10% { -ms-transform: skewX(-8deg); }
+    20% { -ms-transform: skewX(7deg); }
+    30% { -ms-transform: skewX(-6deg); }
+    40% { -ms-transform: skewX(5deg); }
+    50% { -ms-transform: skewX(-4deg); }
+    60% { -ms-transform: skewX(3deg); }
+    70% { -ms-transform: skewX(-2deg); }
+    80% { -ms-transform: skewX(1deg); }
+    90% { -ms-transform: skewX(0deg); }
+    100% { -ms-transform: skewX(0deg); }
+}
+
+@-o-keyframes wiggle {
+    0% { -o-transform: skewX(9deg); }
+    10% { -o-transform: skewX(-8deg); }
+    20% { -o-transform: skewX(7deg); }
+    30% { -o-transform: skewX(-6deg); }
+    40% { -o-transform: skewX(5deg); }
+    50% { -o-transform: skewX(-4deg); }
+    60% { -o-transform: skewX(3deg); }
+    70% { -o-transform: skewX(-2deg); }
+    80% { -o-transform: skewX(1deg); }
+    90% { -o-transform: skewX(0deg); }
+    100% { -o-transform: skewX(0deg); }
+}
+
+@keyframes wiggle {
+    0% { transform: skewX(9deg); }
+    10% { transform: skewX(-8deg); }
+    20% { transform: skewX(7deg); }
+    30% { transform: skewX(-6deg); }
+    40% { transform: skewX(5deg); }
+    50% { transform: skewX(-4deg); }
+    60% { transform: skewX(3deg); }
+    70% { transform: skewX(-2deg); }
+    80% { transform: skewX(1deg); }
+    90% { transform: skewX(0deg); }
+    100% { transform: skewX(0deg); }
 }

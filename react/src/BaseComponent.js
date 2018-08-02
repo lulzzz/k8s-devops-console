@@ -25,5 +25,10 @@ class BaseComponent extends Component {
         });
     }
 
+    handlePreventEvent(event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
 }
 export default BaseComponent;

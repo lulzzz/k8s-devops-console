@@ -1,6 +1,7 @@
 import React from 'react';
 import $ from 'jquery';
 import onClickOutside from 'react-onclickoutside'
+import {CopyToClipboard} from 'react-copy-to-clipboard';
 
 import BaseComponent from './BaseComponent';
 import Spinner from './Spinner';
@@ -336,7 +337,11 @@ class K8sNamespace extends BaseComponent {
                     {namespaces.map((row) =>
                         <tr key={row.Name} className="k8s-namespace" onClick={this.handleNamespaceClick.bind(this, row)}>
                             <td>
-                                {row.Name}<br/>
+                                {row.Name}
+                                <CopyToClipboard text={row.Name}>
+                                    <button className="button-copy" onClick={this.handlePreventEvent.bind(this)}></button>
+                                </CopyToClipboard>
+                                <br/>
                                 {(() => {
                                    if (this.state.namespaceDescriptionEdit === row.Name) {
                                        return <form onSubmit={this.handleDescriptionSubmit.bind(this)}>
