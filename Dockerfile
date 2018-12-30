@@ -1,14 +1,4 @@
 #############################################
-# GET/CACHE GO DEPS
-#############################################
-FROM golang as go-dependencies
-WORKDIR /app/
-COPY ./glide.yaml /app
-COPY ./glide.lock /app
-RUN curl https://glide.sh/get | sh && glide install
-RUN go get github.com/revel/cmd/revel
-
-#############################################
 # GET/CACHE NPM DEPS
 #############################################
 FROM node:alpine as npm-dependencies
@@ -40,7 +30,11 @@ RUN set -x \
 # BUILD GO APP
 #############################################
 FROM golang as backend
-COPY --from=go-dependencies /go /go
+WORKDIR /go/src/k8s-devops-console
+COPY ./ /go/src/k8s-devops-console
+RUN curl https://glide.sh/get | sh && glide install
+RUN go get github.com/revel/cmd/revel
+RUN go get -u github.com/golang/dep/cmd/dep
 COPY --from=frontend /app /go/src/k8s-devops-console
 RUN set -x \
     && revel build k8s-devops-console /app prod \
@@ -51,10 +45,12 @@ RUN set -x \
 #############################################
 # FINAL IMAGE
 #############################################
-FROM alpine
-RUN apk add --no-cache \
-        libc6-compat \
-    	ca-certificates
+FROM debian:stable-slim
+
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
 COPY --from=backend /app/ /app/
 USER 65534
 EXPOSE 9000

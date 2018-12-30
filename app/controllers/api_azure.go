@@ -8,7 +8,7 @@ import (
 	"k8s-devops-console/app/models"
 	"k8s-devops-console/app"
 	"github.com/revel/revel"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -179,5 +179,3 @@ func (c ApiAzure) CreateResourceGroup(resourceGroupName, location, team string, 
 
 	return c.RenderJSON(ret)
 }
-
-

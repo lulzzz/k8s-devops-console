@@ -61,7 +61,7 @@ func (c Base) getUser() (user *models.User) {
 
 	// cookie session
 	if jsonVal, ok := c.Session["user"]; ok {
-		newUser, err := models.UserCreateFromJson(jsonVal, app.AppConfig)
+		newUser, err := models.UserCreateFromJson(jsonVal.(string), app.AppConfig)
 		if err == nil {
 			user = newUser
 			c.ViewArgs["user"] = newUser

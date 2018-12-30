@@ -10,7 +10,7 @@ import (
 	"k8s-devops-console/app/models"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
-	"github.com/mblaschke/go-oidc"
+	"github.com/coreos/go-oidc"
 	githubapi "github.com/google/go-github/github"
 )
 
@@ -162,8 +162,7 @@ func (o *OAuth) buildConfig() (config *oauth2.Config) {
 		}
 
 		//provider, err := oidc.NewProvider(ctx, fmt.Sprintf("https://sts.windows.net/%s/", aadTenant))
-		provider, err := oidc.NewProvider(ctx, fmt.Sprintf("https://login.microsoftonline.com/%s/", aadTenant))
-		//provider, err := oidc.NewProvider(ctx, fmt.Sprintf("https://login.microsoftonline.com/%s/v2.0", aadTenant))
+		provider, err := oidc.NewProvider(ctx, fmt.Sprintf("https://login.microsoftonline.com/%s/v2.0", aadTenant))
 		if err != nil {
 			o.error(fmt.Sprintf("oauth.provider AzureAD init failed: %s", err))
 		}
