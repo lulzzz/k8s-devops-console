@@ -80,11 +80,17 @@ func (c Home) OAuthAuthorize() revel.Result {
 		return c.Redirect(routes.Home.Index())
 	}
 
-
 	user, err = oauth.FetchUserInfo(tkn)
 	if err != nil {
 		c.Log.Error(fmt.Sprintf("OAUTH fetch user error: %v",err))
 		c.Flash.Error("OAuth failed: failed to get user information")
+		return c.Redirect(routes.Home.Index())
+	}
+
+	// check username
+	if user.Username == "" {
+		c.Log.Error("Got empty username, login failed")
+		c.Flash.Error("Got empty username, login failed")
 		return c.Redirect(routes.Home.Index())
 	}
 

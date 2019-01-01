@@ -161,8 +161,7 @@ func (o *OAuth) buildConfig() (config *oauth2.Config) {
 			aadTenant = val
 		}
 
-		//provider, err := oidc.NewProvider(ctx, fmt.Sprintf("https://sts.windows.net/%s/", aadTenant))
-		provider, err := oidc.NewProvider(ctx, fmt.Sprintf("https://login.microsoftonline.com/%s/v2.0", aadTenant))
+		provider, err := oidc.NewProvider(ctx, fmt.Sprintf("https://sts.windows.net/%s/", aadTenant))
 		if err != nil {
 			o.error(fmt.Sprintf("oauth.provider AzureAD init failed: %s", err))
 		}

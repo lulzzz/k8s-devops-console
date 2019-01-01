@@ -1,5 +1,5 @@
-hash: 8100772135d6f64ef9e618898d158a895d34b30b49425bfcac9b3d0142e42495
-updated: 2018-12-30T14:05:57.50245+01:00
+hash: 0bd15ae6d733789b839b21113d502d2823f50a0efd59d8df17c7793c4d27849f
+updated: 2019-01-02T00:35:03.38431+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -27,6 +27,10 @@ imports:
   - autorest/validation
   - logger
   - tracing
+- name: github.com/beorn7/perks
+  version: 3a771d992973f24aa725d07868b467d1ddfceafb
+  subpackages:
+  - quantile
 - name: github.com/census-instrumentation/opencensus-proto
   version: b11a67434194733b34c11f206938263fa16ad1cf
   subpackages:
@@ -101,6 +105,10 @@ imports:
   version: efa589957cd060542a26d2dd7832fd6a6c6c3ade
 - name: github.com/mattn/go-isatty
   version: 3fb116b820352b7f0c281308a4d6250c22d94e27
+- name: github.com/matttproud/golang_protobuf_extensions
+  version: c12348ce28de40eed0136aa2b644d0ee0650e56c
+  subpackages:
+  - pbutil
 - name: github.com/mitchellh/go-homedir
   version: ae18d6b8b3205b561c79e8e5f69bff09736185f4
 - name: github.com/modern-go/concurrent
@@ -113,6 +121,28 @@ imports:
   version: 1555304b9b35fdd2b425bccf1a5613677705e7d0
   subpackages:
   - cacheobject
+- name: github.com/prometheus/client_golang
+  version: fb3d5cb2ad5789367093b409855a3937d651b572
+  subpackages:
+  - prometheus
+  - prometheus/internal
+  - prometheus/promhttp
+- name: github.com/prometheus/client_model
+  version: 5c3871d89910bfb32f5fcab2aa4b9ec68e65a99f
+  subpackages:
+  - go
+- name: github.com/prometheus/common
+  version: 41aa239b4cce3c56ab88fc366ae8b0a6423fa239
+  subpackages:
+  - expfmt
+  - internal/bitbucket.org/ww/goautoneg
+  - model
+- name: github.com/prometheus/procfs
+  version: 185b4288413d2a0dd0806f78c90dde719829e5ae
+  subpackages:
+  - internal/util
+  - nfs
+  - xfs
 - name: github.com/revel/cmd
   version: 149f9f992be9b0957fb1ffeda43c14a123ceb43a
 - name: github.com/revel/config
@@ -141,7 +171,7 @@ imports:
 - name: github.com/twinj/uuid
   version: 7bbe408d339787c56ec15568c947c0959db1b275
 - name: github.com/xeonx/timeago
-  version: f6470d57eb2e509dfe94b6fdcc9f10905d4be1f7
+  version: 4e7d8c1f9a433881f64a7f87f51e494186857982
 - name: go.opencensus.io
   version: 91a0276ece6ad4cbdc4b46116f88d2b47a5f58e5
   subpackages:
@@ -181,7 +211,7 @@ imports:
   - trace
   - websocket
 - name: golang.org/x/oauth2
-  version: a6bd8cefa1811bd24b86f8902872e4e8225f74c4
+  version: d668ce993890a79bda886613ee587a69dd5da7a6
   subpackages:
   - github
   - google
@@ -193,7 +223,7 @@ imports:
   subpackages:
   - semaphore
 - name: golang.org/x/sys
-  version: d0faeb539838e250bd0a9db4182d48d4a1915181
+  version: 9a3f9b0469bbc6b8802087ae5c0af9f61502de01
   subpackages:
   - unix
   - windows
@@ -351,7 +381,7 @@ imports:
   - pkg/watch
   - third_party/forked/golang/reflect
 - name: k8s.io/client-go
-  version: 7856fdbcc3be4d133402982f0a5069d251eb8459
+  version: 1a4f03865c3476aab9f565c69e63be8f75edb97f
   subpackages:
   - discovery
   - kubernetes

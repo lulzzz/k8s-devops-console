@@ -27,6 +27,7 @@ import:
 - package: github.com/coreos/go-oidc
   version: master
 - package: golang.org/x/oauth2
+  version: master
   subpackages:
   - github
 - package: gopkg.in/yaml.v2
