@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/revel/revel"
+	"k8s-devops-console/app"
 	"k8s-devops-console/app/services"
 	"github.com/dustin/go-humanize"
 )
@@ -91,6 +93,8 @@ func (c ApiCluster) Nodes() revel.Result {
 
 		ret = append(ret, row)
 	}
+
+	app.PrometheusActions.With(prometheus.Labels{"scope": "k8s", "type": "listNodes"}).Inc()
 
 	return c.RenderJSON(ret)
 }

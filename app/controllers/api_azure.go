@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/prometheus/client_golang/prometheus"
 	"os"
 	"fmt"
 	"time"
@@ -176,6 +177,8 @@ func (c ApiAzure) CreateResourceGroup(resourceGroupName, location, team string, 
 			return c.renderJSONError("Unable to create Azure RoleAssignment")
 		}
 	}
+
+	app.PrometheusActions.With(prometheus.Labels{"scope": "azure", "type": "createResourceGroup"}).Inc()
 
 	return c.RenderJSON(ret)
 }

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus"
 	"math/rand"
 	"encoding/base64"
 	"github.com/revel/revel"
@@ -36,6 +37,9 @@ func (c Home) OAuthStart(username, password string) revel.Result {
 
 	oauth := services.OAuth{}
 	url := oauth.AuthCodeURL(state)
+
+	app.PrometheusActions.With(prometheus.Labels{"scope": "oauth", "type": "start"}).Inc()
+
 	return c.Redirect(url)
 }
 
@@ -106,6 +110,8 @@ func (c Home) OAuthAuthorize() revel.Result {
 
 	c.setUser(user)
 
+	app.PrometheusActions.With(prometheus.Labels{"scope": "oauth", "type": "login"}).Inc()
+
 	return c.Redirect(routes.App.Namespace())
 }
 
@@ -118,6 +124,8 @@ func (c Home) handleOauthErrors() bool {
 			message = fmt.Sprintf("%s:\n%s", error, errorDesc)
 		}
 
+		app.PrometheusActions.With(prometheus.Labels{"scope": "oauth", "type": "failed"}).Inc()
+
 		c.Validation.Error(message)
 		return true
 	}
@@ -129,5 +137,6 @@ func (c Home) Logout() revel.Result {
 	for k := range c.Session {
 		delete(c.Session, k)
 	}
+
 	return c.Redirect(routes.Home.Index())
 }

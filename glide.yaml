@@ -50,3 +50,5 @@ import:
   version: master
 - package: github.com/revel/cmd
   version: master
+- package: github.com/prometheus/client_golang/prometheus/promhttp
+  version: master

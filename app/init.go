@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/prometheus/client_golang/prometheus"
 	"os"
 	"regexp"
 	"strconv"
@@ -15,7 +16,9 @@ import (
 	"k8s.io/api/settings/v1alpha1"
 	v13 "k8s.io/api/rbac/v1"
 	v12 "k8s.io/api/networking/v1"
-	)
+	"net/http"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+)
 
 var (
 	// AppVersion revel app version (ldflags)
@@ -47,6 +50,8 @@ var (
 	AppConfig *models.AppConfig
 	AuditLog logger.MultiLogger
 	KubeNamespaceConfig map[string]*KubeObjectList
+
+	PrometheusActions *prometheus.GaugeVec
 )
 
 type KubeObjectList struct {
@@ -96,6 +101,17 @@ func init() {
 			c.SetJson(os.Stderr, options)
 		}
 
+	PrometheusActions = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "devopsconsole_actions",
+			Help: "DevOps Console actions",
+		},
+		[]string{
+			"scope",
+			"type",
+		},
+	)
+	prometheus.MustRegister(PrometheusActions)
 
 	// Register startup functions with OnAppStart
 	// revel.DevMode and revel.RunMode only work inside of OnAppStart. See Example Startup Script
@@ -108,6 +124,7 @@ func init() {
 	revel.OnAppStart(InitTemplateEngine)
 	revel.OnAppStart(InitAppConfiguration)
 	revel.OnAppStart(InitKubeNamespaceConfig)
+	revel.OnAppStart(initPrometheus)
 }
 
 // HeaderFilter adds common security headers
@@ -335,4 +352,11 @@ func addK8sConfigsFromPath(configPath string, list *KubeObjectList) {
 			panic("Not allowed object found: " + item.Object.GetObjectKind().GroupVersionKind().Kind)
 		}
 	}
+}
+
+func initPrometheus() {
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		http.ListenAndServe(GetConfigString("metrics.listen", ":9001"), nil)
+	}()
 }

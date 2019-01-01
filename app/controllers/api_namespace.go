@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus"
 	"regexp"
 	"errors"
 	"strings"
@@ -82,6 +83,8 @@ func (c ApiNamespace) List() revel.Result {
 
 		ret = append(ret, row)
 	}
+
+	app.PrometheusActions.With(prometheus.Labels{"scope": "k8s", "type": "listNamespace"}).Inc()
 
 	return c.RenderJSON(ret)
 }
@@ -217,6 +220,7 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp, description strin
 	}
 
 	c.auditLog(fmt.Sprintf("Namespace \"%s\" created", namespace.Name))
+	app.PrometheusActions.With(prometheus.Labels{"scope": "k8s", "type": "createNamespace"}).Inc()
 
 	return c.RenderJSON(result)
 }
@@ -250,6 +254,7 @@ func (c ApiNamespace) Delete(namespace string) revel.Result {
 	}
 
 	c.auditLog(fmt.Sprintf("Namespace \"%s\" deleted", nsObject.Name))
+	app.PrometheusActions.With(prometheus.Labels{"scope": "k8s", "type": "deleteNamepace"}).Inc()
 
 	return c.RenderJSON(result)
 }
@@ -284,6 +289,7 @@ func (c ApiNamespace) ResetRBAC(namespace string) revel.Result {
 
 	result.Message = fmt.Sprintf("Namespace \"%s\" permissions resetted", nsObject.Name)
 	c.auditLog(fmt.Sprintf("Namespace \"%s\" permissions resetted", nsObject.Name))
+	app.PrometheusActions.With(prometheus.Labels{"scope": "k8s", "type": "resetRbac"}).Inc()
 
 	return c.RenderJSON(result)
 }
@@ -318,6 +324,7 @@ func (c ApiNamespace) ResetSettings(namespace string) revel.Result {
 
 	result.Message = fmt.Sprintf("Namespace \"%s\" settings resetted", nsObject.Name)
 	c.auditLog(fmt.Sprintf("Namespace \"%s\" settings resetted", nsObject.Name))
+	app.PrometheusActions.With(prometheus.Labels{"scope": "k8s", "type": "resetSettings"}).Inc()
 
 	return c.RenderJSON(result)
 }
@@ -377,7 +384,8 @@ func (c ApiNamespace) SetDescription(namespace, description string) revel.Result
 	}
 
 	result.Message = fmt.Sprintf("Namespace \"%s\" description changed", nsObject.Name)
-	c.auditLog(fmt.Sprintf("Namespace \"%s\" description changed", nsObject.Name))
+	//c.auditLog(fmt.Sprintf("Namespace \"%s\" description changed", nsObject.Name))
+	app.PrometheusActions.With(prometheus.Labels{"scope": "k8s", "type": "setDescription"}).Inc()
 
 	return c.RenderJSON(result)
 }
