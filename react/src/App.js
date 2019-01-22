@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route } from 'react-router-dom';
 import K8sClusterNodes from './K8sClusterNodes';
 import K8sNamespace from './K8sNamespace';
 import AzureResourceGroups from './AzureResourceGroups';
+import Settings from './Settings';
 import $ from "jquery";
 
 class App extends Component {
@@ -54,6 +55,7 @@ class App extends Component {
                 <div>
                     <Route path="/cluster" component={K8sClusterNodes} />
                     <Route path="/namespace" component={K8sNamespace} />
+                    <Route path="/settings" component={Settings} />
                     <Route path="/azure/resourcegroups" component={AzureResourceGroups} />
                 </div>
             </Router>

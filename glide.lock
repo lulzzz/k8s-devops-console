@@ -1,5 +1,5 @@
-hash: 0bd15ae6d733789b839b21113d502d2823f50a0efd59d8df17c7793c4d27849f
-updated: 2019-01-02T00:35:03.38431+01:00
+hash: 003a542e6583ed607536ce700a00003d89a61ffe7aeb58b343d4fb2080d48959
+updated: 2019-01-22T20:35:59.221907+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -9,13 +9,17 @@ imports:
 - name: contrib.go.opencensus.io/exporter/ocagent
   version: b8ece14a43f0cda76036504e4a4fd7fa27ce1869
 - name: github.com/Azure/azure-sdk-for-go
-  version: 1951233eb944a49aa5f7278cba8e3e32a8c958af
+  version: 392ea0b046cfb0cb05942ea92baf22af9ff7f9df
   subpackages:
   - services/authorization/mgmt/2015-07-01/authorization
+  - services/keyvault/2016-10-01/keyvault
+  - services/keyvault/mgmt/2016-10-01/keyvault
   - services/resources/mgmt/2018-05-01/resources
+  - services/resources/mgmt/2018-05-01/resources - services/keyvault/2016-10-01/keyvault
+    - services/keyvault/mgmt/2016-10-01/keyvault
   - version
 - name: github.com/Azure/go-autorest
-  version: f401b1ccc8eb505927fae7a0c7f6406d37ca1c7e
+  version: 7324aa01f00acb1ae6e502ac06e0213cfdf09bdb
   subpackages:
   - autorest
   - autorest/adal
@@ -40,6 +44,10 @@ imports:
   - gen-go/trace/v1
 - name: github.com/coreos/go-oidc
   version: a93f71fdfe73d2c0f5413c0565eea0af6523a6df
+- name: github.com/davecgh/go-spew
+  version: 782f4967f2dc4564575ca782fe2d04090b5faca8
+  subpackages:
+  - spew
 - name: github.com/dgrijalva/jwt-go
   version: 01aeca54ebda6e0fbfafd0a524d234159c05ec20
 - name: github.com/dimchansky/utfbom
@@ -63,7 +71,7 @@ imports:
 - name: github.com/google/btree
   version: 7d79101e329e5a3adf994758c578dab82b90c017
 - name: github.com/google/go-github
-  version: dcd9d6d5cac5a8b9457f318d9ace4a61f087a9b9
+  version: 56cb1dd99043eba2e21c91aa8417d3ba2329259a
   subpackages:
   - github
 - name: github.com/google/go-querystring
@@ -122,7 +130,7 @@ imports:
   subpackages:
   - cacheobject
 - name: github.com/prometheus/client_golang
-  version: fb3d5cb2ad5789367093b409855a3937d651b572
+  version: 26e258bb9c9a94c26d4a46ff302ec7e855b82e10
   subpackages:
   - prometheus
   - prometheus/internal
@@ -166,6 +174,8 @@ imports:
   - session
   - testing
   - utils
+- name: github.com/satori/go.uuid
+  version: b2ce2384e17bbe0c6d34077efa39dbab3e09123b
 - name: github.com/spf13/pflag
   version: 583c0c0531f06d5278b7d917446061adc344b5cd
 - name: github.com/twinj/uuid
@@ -211,7 +221,7 @@ imports:
   - trace
   - websocket
 - name: golang.org/x/oauth2
-  version: d668ce993890a79bda886613ee587a69dd5da7a6
+  version: 5dab4167f31cbd76b407f1486c86b40748bc5073
   subpackages:
   - github
   - google
@@ -223,7 +233,7 @@ imports:
   subpackages:
   - semaphore
 - name: golang.org/x/sys
-  version: 9a3f9b0469bbc6b8802087ae5c0af9f61502de01
+  version: 054c452bb702e465e95ce8e7a3d9a6cf0cd1188d
   subpackages:
   - unix
   - windows
@@ -259,7 +269,7 @@ imports:
   subpackages:
   - googleapis/rpc/status
 - name: google.golang.org/grpc
-  version: 36f3126920fe326b7874e730e3cc26546186d8f0
+  version: 4cad6a62833044625feecb561a3e882be34097cc
   subpackages:
   - balancer
   - balancer/base
@@ -381,7 +391,7 @@ imports:
   - pkg/watch
   - third_party/forked/golang/reflect
 - name: k8s.io/client-go
-  version: 1a4f03865c3476aab9f565c69e63be8f75edb97f
+  version: 583180148285a4936b884d8d27ed0063146a8df6
   subpackages:
   - discovery
   - kubernetes

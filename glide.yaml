@@ -5,6 +5,8 @@ import:
   subpackages:
   - services/authorization/mgmt/2015-07-01/authorization
   - services/resources/mgmt/2018-05-01/resources
+    - services/keyvault/2016-10-01/keyvault
+    - services/keyvault/mgmt/2016-10-01/keyvault
 - package: github.com/Azure/go-autorest
   version: master
   subpackages:

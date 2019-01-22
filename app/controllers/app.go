@@ -26,6 +26,10 @@ func (c App) Namespace() revel.Result {
 	return c.Render()
 }
 
+func (c App) Settings() revel.Result {
+	return c.Render()
+}
+
 func (c App) About() revel.Result {
 	c.ViewArgs["version"] = app.AppVersion
 	return c.Render()
