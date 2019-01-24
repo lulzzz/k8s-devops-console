@@ -40,7 +40,7 @@ func (c ApiSettings) Get() revel.Result {
 	var ret SettingsOverall
 	ret.Team = map[string]SettingsTeam{}
 
-	ret.Personal.SshPubKey = c.getKeyvaultSecret(c.personalSecretName("SshPubKey"))
+	ret.Personal.SshPubKey = c.getKeyvaultSecret(c.userSecretName("SshPubKey"))
 
 	for _, team := range c.getUser().Teams {
 		ret.Team[team.Name] = SettingsTeam{
@@ -66,7 +66,7 @@ func (c ApiSettings) UpdatePersonal() revel.Result {
 	// ssh pub key
 	if val, ok := config["SshPubKey"]; ok {
 		err = c.setKeyvaultSecret(
-			c.personalSecretName("SshPubKey"),
+			c.userSecretName("SshPubKey"),
 			val,
 		)
 
@@ -130,8 +130,8 @@ func (c ApiSettings) UpdateTeam(team string) revel.Result {
 	return c.RenderJSON(result)
 }
 
-func (c ApiSettings) personalSecretName(name string) string {
-	return fmt.Sprintf("personal---%s---%s", c.getUser().Username, name)
+func (c ApiSettings) userSecretName(name string) string {
+	return fmt.Sprintf("user---%s---%s", c.getUser().Username, name)
 }
 
 func (c ApiSettings) teamSecretName(team, name string) string {
