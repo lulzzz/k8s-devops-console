@@ -8,7 +8,9 @@ import (
 	"github.com/revel/revel"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"k8s-devops-console/app"
+	"k8s-devops-console/app/models"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
@@ -19,17 +21,9 @@ type ApiSettings struct {
 }
 
 type SettingsOverall struct {
-	Personal SettingsPersonal `json:"personal"`
-	Team map[string]SettingsTeam `json:"team"`
-}
-
-type SettingsPersonal struct {
-	SshPubKey string
-}
-
-type SettingsTeam struct {
-	AlertingSlackApi string
-	AlertingPagerdutyApi string
+	Settings models.AppConfigSettings `json:"Configuration"`
+	User map[string]string `json:"User"`
+	Team map[string]map[string]string `json:"Team"`
 }
 
 func (c ApiSettings) accessCheck() (result revel.Result) {
@@ -38,21 +32,26 @@ func (c ApiSettings) accessCheck() (result revel.Result) {
 
 func (c ApiSettings) Get() revel.Result {
 	var ret SettingsOverall
-	ret.Team = map[string]SettingsTeam{}
 
-	ret.Personal.SshPubKey = c.getKeyvaultSecret(c.userSecretName("SshPubKey"))
+	ret.Settings = app.AppConfig.Settings
+	ret.User = map[string]string{}
+	ret.Team = map[string]map[string]string{}
+
+	for _, setting := range app.AppConfig.Settings.User {
+		ret.User[setting.Name] = c.getKeyvaultSecret(c.userSecretName(setting.Name))
+	}
 
 	for _, team := range c.getUser().Teams {
-		ret.Team[team.Name] = SettingsTeam{
-			AlertingSlackApi: c.getKeyvaultSecret(c.teamSecretName(team.Name, "AlertingSlackApi")),
-			AlertingPagerdutyApi: c.getKeyvaultSecret(c.teamSecretName(team.Name, "AlertingPagerdutyApi")),
+		ret.Team[team.Name] = map[string]string{}
+		for _, setting := range app.AppConfig.Settings.Team {
+			ret.Team[team.Name][setting.Name] = c.getKeyvaultSecret(c.teamSecretName(team.Name, setting.Name))
 		}
 	}
 
 	return c.RenderJSON(ret)
 }
 
-func (c ApiSettings) UpdatePersonal() revel.Result {
+func (c ApiSettings) UpdateUser() revel.Result {
 	var err error
 	result := struct {
 		Message string
@@ -63,19 +62,39 @@ func (c ApiSettings) UpdatePersonal() revel.Result {
 	config := map[string]string{}
 	c.Params.Bind(&config, "config")
 
-	// ssh pub key
-	if val, ok := config["SshPubKey"]; ok {
-		err = c.setKeyvaultSecret(
-			c.userSecretName("SshPubKey"),
-			val,
-		)
-
-		if err != nil {
-			result.Message = fmt.Sprintf("Failed setting keyvault")
-			c.Response.Status = http.StatusForbidden
-			return c.RenderJSON(result)
+	// validation
+	validationMessages := []string{}
+	for _, setting := range app.AppConfig.Settings.User {
+		if val, ok := config[setting.Name]; ok {
+			if !c.validateInput(setting, val) {
+				validationMessages = append(validationMessages, fmt.Sprintf("Validation of \"%s\" failed", setting.Label))
+			}
 		}
 	}
+
+	if len(validationMessages) >= 1 {
+		result.Message = strings.Join(validationMessages, "<br>")
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(result)
+	}
+
+	// set values
+	for _, setting := range app.AppConfig.Settings.User {
+		if val, ok := config[setting.Name]; ok {
+			err = c.setKeyvaultSecret(
+				c.userSecretName(setting.Name),
+				val,
+			)
+
+			if err != nil {
+				result.Message = fmt.Sprintf("Failed setting keyvault")
+				c.Response.Status = http.StatusForbidden
+				return c.RenderJSON(result)
+			}
+		}
+	}
+
+
 
 	return c.RenderJSON(result)
 }
@@ -98,34 +117,38 @@ func (c ApiSettings) UpdateTeam(team string) revel.Result {
 	config := map[string]string{}
 	c.Params.Bind(&config, "config")
 
-	// alerting slackapi
-	if val, ok := config["AlertingSlackApi"]; ok {
-		err = c.setKeyvaultSecret(
-			c.teamSecretName(team, "AlertingSlackApi"),
-			val,
-		)
-
-		if err != nil {
-			result.Message = fmt.Sprintf("Failed setting keyvault")
-			c.Response.Status = http.StatusForbidden
-			return c.RenderJSON(result)
+	// validation
+	validationMessages := []string{}
+	for _, setting := range app.AppConfig.Settings.Team {
+		if val, ok := config[setting.Name]; ok {
+			if !c.validateInput(setting, val) {
+				validationMessages = append(validationMessages, fmt.Sprintf("Validation of \"%s\" failed", setting.Label))
+			}
 		}
 	}
 
-	// alerting pagerdutyapi
-	if val, ok := config["AlertingPagerdutyApi"]; ok {
-		err = c.setKeyvaultSecret(
-			c.teamSecretName(team, "AlertingPagerdutyApi"),
-			val,
-		)
-
-		if err != nil {
-			result.Message = fmt.Sprintf("Failed setting keyvault")
-			c.Response.Status = http.StatusForbidden
-			return c.RenderJSON(result)
-		}
+	if len(validationMessages) >= 1 {
+		result.Message = strings.Join(validationMessages, "<br>")
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(result)
 	}
 
+	// set values
+	for _, setting := range app.AppConfig.Settings.Team {
+		if val, ok := config[setting.Name]; ok {
+			err = c.setKeyvaultSecret(
+				c.teamSecretName(team, setting.Name),
+				val,
+			)
+
+			if err != nil {
+				result.Message = fmt.Sprintf("Failed setting keyvault")
+				c.Response.Status = http.StatusForbidden
+				return c.RenderJSON(result)
+			}
+		}
+
+	}
 
 	return c.RenderJSON(result)
 }
@@ -157,6 +180,21 @@ func (c ApiSettings) getKeyvaultClient(vaultUrl string) (*keyvault.BaseClient){
 
 	return c.vaultClient
 }
+
+func (c ApiSettings) validateInput(setting models.AppConfigSettingItem, value string) (status bool) {
+	status = true
+
+	if setting.Validation.Regexp != "" {
+		validationRegexp := regexp.MustCompile(setting.Validation.Regexp)
+
+		if !validationRegexp.MatchString(value) {
+			status = false
+		}
+	}
+
+	return
+}
+
 
 func (c ApiSettings) setKeyvaultSecret(secretName, secretValue string) (error) {
 	ctx := context.Background()

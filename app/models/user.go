@@ -29,13 +29,13 @@ func (u *User) initTeams(config *AppConfig) (teams []Team) {
 	}
 
 	// Default teams
-	for _, teamName := range config.Default.Teams {
+	for _, teamName := range config.Permissions.Default.Teams {
 		teamList[teamName] = teamName
 	}
 
 	// User teams
-	if config.User != nil {
-		if val, exists := config.User[u.Username]; exists {
+	if config.Permissions.User != nil {
+		if val, exists := config.Permissions.User[u.Username]; exists {
 			for _, teamName := range val.Teams {
 				teamList[teamName] = teamName
 			}
@@ -43,9 +43,9 @@ func (u *User) initTeams(config *AppConfig) (teams []Team) {
 	}
 
 	// Group teams
-	if config.Group != nil {
+	if config.Permissions.Group != nil {
 		for _, group := range u.Groups {
-			if val, exists := config.Group[group]; exists {
+			if val, exists := config.Permissions.Group[group]; exists {
 				for _, teamName := range val.Teams {
 					teamList[teamName] = teamName
 				}
@@ -62,8 +62,8 @@ func (u *User) initTeams(config *AppConfig) (teams []Team) {
 
 	// Build teams (with permissions)
 	for _, teamName := range teamNameList {
-		if _, exists := config.Team[teamName]; exists {
-			teamConfig := config.Team[teamName]
+		if _, exists := config.Permissions.Team[teamName]; exists {
+			teamConfig := config.Permissions.Team[teamName]
 			teams = append(teams, Team{Name: teamName, K8sPermissions: teamConfig.K8sRoleBinding, AzureRoleAssignments: teamConfig.AzureRoleAssignments})
 		}
 	}

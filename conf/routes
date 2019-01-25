@@ -28,7 +28,7 @@ POST    /api/mgmt/namespace/reset/rbac/:namespace       ApiNamespace.ResetRBAC
 POST    /api/mgmt/namespace/reset/settings/:namespace   ApiNamespace.ResetSettings
 POST    /api/mgmt/namespace/description/:namespace      ApiNamespace.SetDescription
 GET     /api/settings                           ApiSettings.Get
-POST    /api/settings/personal                  ApiSettings.UpdatePersonal
+POST    /api/settings/user                      ApiSettings.UpdateUser
 POST    /api/settings/team                      ApiSettings.UpdateTeam
 GET     /api/user/kubeconfig                    ApiUser.Kubeconfig
 

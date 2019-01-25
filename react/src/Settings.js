@@ -26,15 +26,20 @@ class Settings extends BaseComponent {
 
             requestRunning: false,
 
-            personalMessage: "",
+            userMessage: "",
+            userError: "",
 
-            personal: {
-                SshPubKey: "",
+            teamMessage: {},
+            teamError: {},
+
+            settingConfig: {
+                User: [],
+                Team: []
             },
 
-            team: {
+            user: {},
 
-            },
+            team: {}
         };
     }
 
@@ -72,12 +77,16 @@ class Settings extends BaseComponent {
                 var state = this.state;
                 state.isStartupSettings = false;
 
-                if (jqxhr.personal) {
-                    state.personal = jqxhr.personal;
+                if (jqxhr.Configuration) {
+                    state.settingConfig = jqxhr.Configuration;
                 }
 
-                if (jqxhr.team) {
-                    state.team = jqxhr.team;
+                if (jqxhr.User) {
+                    state.user = jqxhr.User;
+                }
+
+                if (jqxhr.Team) {
+                    state.team = jqxhr.Team;
                 }
 
                 this.setState(state);
@@ -86,7 +95,7 @@ class Settings extends BaseComponent {
     }
 
     handlePersonalInputChange(name, event) {
-        var state = this.state.personal;
+        var state = this.state.user;
         state[name] = event.target.value;
         this.setState(state);
     }
@@ -112,27 +121,44 @@ class Settings extends BaseComponent {
         return state
     }
 
-    updatePersonalSettings(e) {
+    updateUserSettings(e) {
         e.preventDefault();
         e.stopPropagation();
 
         this.setState({
             requestRunning: true,
             globalError: "",
-            personalMessage: "",
-            teamMessage: {}
+            userMessage: "",
+            userError: "",
+            teamMessage: {},
+            teamError: {}
         });
 
         let jqxhr = $.ajax({
             type: 'POST',
-            url: "/api/settings/personal",
+            url: "/api/settings/user",
             data: {
-                config: this.state.personal
+                config: this.state.user
             }
         }).done((jqxhr) => {
             this.setState({
-                personalMessage: "Personal settings updated",
+                userMessage: "Personal settings updated",
+                userError: ""
             });
+
+        }).fail((jqxhr) => {
+            var state = {
+                userMessage: "",
+                userError: ""
+            };
+
+            if (jqxhr.responseJSON.Message) {
+                state.userError = jqxhr.responseJSON.Message;
+            } else {
+                state.userError = "Unknown error";
+            }
+
+            this.setState(state);
         }).always(() => {
             this.setState({
                 requestRunning: false,
@@ -150,8 +176,9 @@ class Settings extends BaseComponent {
         this.setState({
             requestRunning: true,
             globalError: "",
-            personalMessage: "",
-            teamMessage: {}
+            userMessage: "",
+            teamMessage: {},
+            teamError: {}
         });
 
         let jqxhr = $.ajax({
@@ -163,9 +190,25 @@ class Settings extends BaseComponent {
             }
         }).done((jqxhr) => {
             var state = {
-                teamMessage: {}
+                teamMessage: {},
+                teamError: {},
             };
             state.teamMessage[team] = "Team " + team + " settings updated";
+            this.setState(state);
+        }).fail((jqxhr) => {
+            console.log(jqxhr);
+
+            var state = {
+                teamMessage: {},
+                teamError: {}
+            };
+
+            if (jqxhr.responseJSON.Message) {
+                state.teamError[team] = jqxhr.responseJSON.Message;
+            } else {
+                state.teamError[team] = "Unknown error";
+            }
+
             this.setState(state);
         }).always(() => {
             this.setState({
@@ -174,6 +217,16 @@ class Settings extends BaseComponent {
         });
 
         this.handleXhr(jqxhr);
+    }
+
+    getUserConfigItem(name) {
+        var ret = "";
+
+        if (this.state.user && this.state.user[name]) {
+            ret = this.state.user[name];
+        }
+
+        return ret;
     }
 
     getTeamConfig(team) {
@@ -206,11 +259,26 @@ class Settings extends BaseComponent {
         return false
     }
 
+    getTeamError(team) {
+        if (this.state.teamError && this.state.teamError[team]) {
+            return this.state.teamError[team];
+        }
+        return false
+    }
+
     render() {
         if ((this.state.isStartupConfig || this.state.isStartupSettings) && this.state.globalError) {
             return (
                 <div className="alert alert-danger">{this.state.globalError}</div>
             )
+        }
+
+        if (this.state.isStartupConfig || this.state.isStartupSettings) {
+            return (
+                <div>
+                    <Spinner active={this.isStartup()}/>
+                </div>
+            );
         }
 
         return (
@@ -223,36 +291,38 @@ class Settings extends BaseComponent {
 
                 <h2>Personal settings</h2>
                 <div>
-                    <div className={this.state.personalMessage === '' ? 'alert alert-success invisible' : 'alert alert-success'}>{this.state.personalMessage}</div>
+                    <div className={this.state.userMessage === '' ? 'alert alert-success invisible' : 'alert alert-success'}>{this.state.userMessage}</div>
+                    <div className={this.state.userError === '' ? 'alert alert-danger invisible' : 'alert alert-danger'}>{this.state.userError}</div>
                 </div>
                 <form method="post">
-                    <div className="form-group">
-                        <label htmlFor="inputNsApp" className="inputRg">SSH Public Key</label>
-                        <input type="text" name="personalSshKey" id="personalSshKey" className="form-control" placeholder="SSH Public Key" value={this.state.personal.SshPubKey} onChange={this.handlePersonalInputChange.bind(this,"SshPubKey")} />
-                    </div>
+                    {this.state.settingConfig.User.map((setting, value) =>
+                        <div className="form-group">
+                            <label htmlFor="inputNsApp" className="inputRg">{setting.Label}</label>
+                            <input type="text" name={setting.Name} id={setting.Name} className="form-control" placeholder={setting.Plaeholder} value={this.getUserConfigItem(setting.Name)} onChange={this.handlePersonalInputChange.bind(this, setting.Name)} />
+                        </div>
+                    )}
                     <div className="toolbox">
-                        <button type="submit" className="btn btn-primary bnt-k8s-namespace-create" disabled={this.stateUpdateButton()} onClick={this.updatePersonalSettings.bind(this)}>Save</button>
+                        <button type="submit" className="btn btn-primary bnt-k8s-namespace-create" disabled={this.stateUpdateButton()} onClick={this.updateUserSettings.bind(this)}>Save</button>
                     </div>
                 </form>
 
 
-                {this.state.config.Teams.map((row, value) =>
+                {this.state.config.Teams.map((team, value) =>
                     <div>
-                        <h2>Team {row.Name} settings</h2>
+                        <h2>Team {team.Name} settings</h2>
                         <div>
-                            <div className={this.getTeamMessage(row.Name) === false ? 'alert alert-success invisible' : 'alert alert-success'}>{this.getTeamMessage(row.Name)}</div>
+                            <div className={this.getTeamMessage(team.Name) === false ? 'alert alert-success invisible' : 'alert alert-success'}>{this.getTeamMessage(team.Name)}</div>
+                            <div className={this.getTeamError(team.Name) === false ? 'alert alert-danger invisible' : 'alert alert-danger'}>{this.getTeamError(team.Name)}</div>
                         </div>
                         <form method="post">
-                            <div className="form-group">
-                                <label htmlFor="inputNsApp" className="inputRg">Alerting Slack</label>
-                                <input type="text" name="teamAlertingSlackUrl" id="teamAlertingSlackUrl" className="form-control" placeholder="API URL" value={this.getTeamConfigItem(row.Name, "AlertingSlackApi")} onChange={this.handleTeamInputChange.bind(this,row.Name,"AlertingSlackApi")} />
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="inputNsApp" className="inputRg">Alerting Pagerduty</label>
-                                <input type="text" name="teamAlertingPagerdutyUrl" id="teamAlertingPagerdutyUrl" className="form-control" placeholder="API URL" value={this.getTeamConfigItem(row.Name, "AlertingPagerdutyApi")} onChange={this.handleTeamInputChange.bind(this,row.Name,"AlertingPagerdutyApi")} />
-                            </div>
+                            {this.state.settingConfig.Team.map((setting, value) =>
+                                <div className="form-group">
+                                    <label htmlFor="inputNsApp" className="inputRg">{setting.Label}</label>
+                                    <input type="text" name={setting.Name} id={setting.Name} className="form-control" placeholder={setting.Plaeholder} value={this.getTeamConfigItem(team.Name, setting.Name)} onChange={this.handleTeamInputChange.bind(this, team.Name, setting.Name)} />
+                                </div>
+                            )}
                             <div className="toolbox">
-                                <button type="submit" className="btn btn-primary bnt-k8s-namespace-create" disabled={this.stateUpdateButton()} onClick={this.updateTeamSettings.bind(this, row.Name)}>Save</button>
+                                <button type="submit" className="btn btn-primary bnt-k8s-namespace-create" disabled={this.stateUpdateButton()} onClick={this.updateTeamSettings.bind(this, team.Name)}>Save</button>
                             </div>
                         </form>
                     </div>

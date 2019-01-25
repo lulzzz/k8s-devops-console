@@ -1,109 +1,127 @@
-default:
-  teams:
-  - devteam0
-  - devteam5
+settings:
+  user:
+  - name: SshPubKey
+    label: SSH Public Key
+    type: input
+    validation:
+      regexp: "^ssh-(rsa|dsa) .+"
+  team:
+  - name: AlertingSlackApi
+    label: Slack/Mattermost Integration URL
+    type: input
+    validation:
+      regexp: "^https://.+"
+  - name: AlertingPagerdutyApi
+    label: Pagerduty API key
+    type: input
 
-user:
-  blascma:
+permissions:
+  default:
     teams:
-    - devteam1
-    - devteam2
-    - devteam3
-
-  userfoo:
-    teams:
-    - devteam1
-    - devteam2
-    - devteam3
-
-group:
-  "bargroup":
-    teams:
+    - devteam0
     - devteam5
-    - devteam8
 
-  "foogroup":
-    teams:
-    - devteam6
+  user:
+    blascma:
+      teams:
+      - devteam1
+      - devteam2
+      - devteam3
 
-  "bazgroup":
-    teams:
-    - devteam7
+    userfoo:
+      teams:
+      - devteam1
+      - devteam2
+      - devteam3
 
-team:
-  devteam0:
-    rolebinding:
-    - name: "general"
-      groups:
-      - "cf805c30-f000-baar-foba-123456789000"
-      serviceaccounts:
-      - name: tiller
-        namespace: foobar
-      - name: tiller
-        namespace: foobar2
-      clusterrole: admin
-    azureroleassignment:
-    - principalid: "cf805c30-f000-baar-foba-6a0e4faddeea"
-      role: contributor
+  group:
+    "bargroup":
+      teams:
+      - devteam5
+      - devteam8
 
-  devteam1:
-    rolebinding:
-    - name: "general"
-      groups:
-      - "cf805c30-f000-baar-foba-123456789000"
-      clusterrole: admin
+    "foogroup":
+      teams:
+      - devteam6
 
-  devteam2:
-    rolebinding:
-    - name: "general"
-      groups:
-      - "cf805c30-f000-baar-foba-123456789002"
-      clusterrole: admin
-    - name: "view"
-      groups:
-      - "cf805c30-f000-baar-foba-123456789004"
-      - "cf805c30-f000-baar-foba-123456789005"
-      - "cf805c30-f000-baar-foba-123456789006"
-      clusterrole: admin
+    "bazgroup":
+      teams:
+      - devteam7
 
-  devteam3:
-    rolebinding:
-    - name: "general"
-      groups:
-      - "cf805c30-f000-baar-foba-123456789003"
-      clusterrole: admin
+  team:
+    devteam0:
+      rolebinding:
+      - name: "general"
+        groups:
+        - "cf805c30-f000-baar-foba-123456789000"
+        serviceaccounts:
+        - name: tiller
+          namespace: foobar
+        - name: tiller
+          namespace: foobar2
+        clusterrole: admin
+      azureroleassignment:
+      - principalid: "cf805c30-f000-baar-foba-6a0e4faddeea"
+        role: contributor
 
-  devteam4:
-    rolebinding:
-    - name: "general"
-      groups:
-      - "cf805c30-f000-baar-foba-123456789004"
-      clusterrole: admin
+    devteam1:
+      rolebinding:
+      - name: "general"
+        groups:
+        - "cf805c30-f000-baar-foba-123456789000"
+        clusterrole: admin
 
-  devteam5:
-    rolebinding:
-    - name: "general"
-      groups:
-      - "cf805c30-f000-baar-foba-123456789005"
-      clusterrole: admin
+    devteam2:
+      rolebinding:
+      - name: "general"
+        groups:
+        - "cf805c30-f000-baar-foba-123456789002"
+        clusterrole: admin
+      - name: "view"
+        groups:
+        - "cf805c30-f000-baar-foba-123456789004"
+        - "cf805c30-f000-baar-foba-123456789005"
+        - "cf805c30-f000-baar-foba-123456789006"
+        clusterrole: admin
 
-  devteam6:
-    rolebinding:
-    - name: "general"
-      groups:
-      - "cf805c30-f000-baar-foba-123456789006"
-      clusterrole: admin
+    devteam3:
+      rolebinding:
+      - name: "general"
+        groups:
+        - "cf805c30-f000-baar-foba-123456789003"
+        clusterrole: admin
 
-  devteam7:
-    rolebinding:
-    - name: "general"
-      groups:
-      - "cf805c30-f000-baar-foba-123456789007"
-      clusterrole: admin
+    devteam4:
+      rolebinding:
+      - name: "general"
+        groups:
+        - "cf805c30-f000-baar-foba-123456789004"
+        clusterrole: admin
 
-  devteam8:
-    rolebinding:
-    - name: "general"
-      groups:
-      - "cf805c30-f000-baar-foba-123456789006"
-      clusterrole: admin
+    devteam5:
+      rolebinding:
+      - name: "general"
+        groups:
+        - "cf805c30-f000-baar-foba-123456789005"
+        clusterrole: admin
+
+    devteam6:
+      rolebinding:
+      - name: "general"
+        groups:
+        - "cf805c30-f000-baar-foba-123456789006"
+        clusterrole: admin
+
+    devteam7:
+      rolebinding:
+      - name: "general"
+        groups:
+        - "cf805c30-f000-baar-foba-123456789007"
+        clusterrole: admin
+
+    devteam8:
+      rolebinding:
+      - name: "general"
+        groups:
+        - "cf805c30-f000-baar-foba-123456789006"
+        clusterrole: admin
