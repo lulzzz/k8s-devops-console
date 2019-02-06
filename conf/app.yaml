@@ -15,6 +15,18 @@ settings:
     label: Pagerduty API key
     type: input
 
+azure:
+  resourcegroup:
+    validation:
+      regexp: "^(.+)-rg$"
+
+    tags:
+    - name: foobar
+      label: Tag Foobar
+      type: input
+      validation:
+        regexp: "^.+$"
+
 permissions:
   default:
     teams:

@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/revel/revel"
 	"k8s-devops-console/app"
+	"k8s-devops-console/app/models"
 )
 
 type ResultNamespaceConfig struct {
@@ -15,6 +16,7 @@ type ResultConfig struct {
 	Teams []ResultTeam
 	NamespaceEnvironments []ResultNamespaceConfig
 	Quota map[string]int
+	Azure models.AppConfigAzure
 }
 
 type ResultUser struct {
@@ -61,6 +63,9 @@ func (c ApiApp) Config() revel.Result {
 		"team": app.GetConfigInt("k8s.namespace.team.quota", 0),
 		"user": app.GetConfigInt("k8s.namespace.user.quota", 0),
 	}
+
+	// azure
+	ret.Azure = app.AppConfig.Azure
 
 	return c.RenderJSON(ret)
 }

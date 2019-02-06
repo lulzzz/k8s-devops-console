@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"errors"
-	"net/http"
 	"github.com/revel/revel"
+	"net/http"
 )
 
 type ApiBase struct {
@@ -17,3 +17,4 @@ func (c ApiBase) accessCheck() (result revel.Result) {
 	}
 	return
 }
+

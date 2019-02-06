@@ -10,7 +10,6 @@ import (
 	"k8s-devops-console/app"
 	"k8s-devops-console/app/models"
 	"net/http"
-	"regexp"
 	"strings"
 )
 
@@ -66,14 +65,14 @@ func (c ApiSettings) UpdateUser() revel.Result {
 	validationMessages := []string{}
 	for _, setting := range app.AppConfig.Settings.User {
 		if val, ok := config[setting.Name]; ok {
-			if !c.validateInput(setting, val) {
-				validationMessages = append(validationMessages, fmt.Sprintf("Validation of \"%s\" failed", setting.Label))
+			if !setting.Validation.Validate(val) {
+				validationMessages = append(validationMessages, fmt.Sprintf("Validation of \"%s\" failed (%v)", setting.Label, setting.Validation.HumanizeString()))
 			}
 		}
 	}
 
 	if len(validationMessages) >= 1 {
-		result.Message = strings.Join(validationMessages, "<br>")
+		result.Message = strings.Join(validationMessages, "\n")
 		c.Response.Status = http.StatusBadRequest
 		return c.RenderJSON(result)
 	}
@@ -93,7 +92,6 @@ func (c ApiSettings) UpdateUser() revel.Result {
 			}
 		}
 	}
-
 
 
 	return c.RenderJSON(result)
@@ -121,14 +119,14 @@ func (c ApiSettings) UpdateTeam(team string) revel.Result {
 	validationMessages := []string{}
 	for _, setting := range app.AppConfig.Settings.Team {
 		if val, ok := config[setting.Name]; ok {
-			if !c.validateInput(setting, val) {
-				validationMessages = append(validationMessages, fmt.Sprintf("Validation of \"%s\" failed", setting.Label))
+			if !setting.Validation.Validate(val) {
+				validationMessages = append(validationMessages, fmt.Sprintf("Validation of \"%s\" failed (%v)", setting.Label, setting.Validation.HumanizeString()))
 			}
 		}
 	}
 
 	if len(validationMessages) >= 1 {
-		result.Message = strings.Join(validationMessages, "<br>")
+		result.Message = strings.Join(validationMessages, "\n")
 		c.Response.Status = http.StatusBadRequest
 		return c.RenderJSON(result)
 	}
@@ -180,21 +178,6 @@ func (c ApiSettings) getKeyvaultClient(vaultUrl string) (*keyvault.BaseClient){
 
 	return c.vaultClient
 }
-
-func (c ApiSettings) validateInput(setting models.AppConfigSettingItem, value string) (status bool) {
-	status = true
-
-	if setting.Validation.Regexp != "" {
-		validationRegexp := regexp.MustCompile(setting.Validation.Regexp)
-
-		if !validationRegexp.MatchString(value) {
-			status = false
-		}
-	}
-
-	return
-}
-
 
 func (c ApiSettings) setKeyvaultSecret(secretName, secretValue string) (error) {
 	ctx := context.Background()

@@ -1,20 +1,21 @@
 package controllers
 
 import (
-	"github.com/prometheus/client_golang/prometheus"
-	"os"
-	"fmt"
-	"time"
 	"context"
-	"k8s-devops-console/app/models"
-	"k8s-devops-console/app"
-	"github.com/revel/revel"
+	"fmt"
+	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/hashicorp/go-uuid"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/revel/revel"
+	"k8s-devops-console/app"
+	"k8s-devops-console/app/models"
+	"os"
+	"strings"
+	"time"
 )
 
 type ResultAzureResourceGroup struct {
@@ -40,13 +41,20 @@ func (c ApiAzure) accessCheck() (result revel.Result) {
 }
 
 
-func (c ApiAzure) CreateResourceGroup(resourceGroupName, location, team string, personal bool) revel.Result {
+func (c ApiAzure) CreateResourceGroup(name, location, team string, personal bool, tag map[string]string) revel.Result {
 	var err error
 	var group resources.Group
+
+	validationMessages := []string{}
 
 	ret := true
 	subscriptionId := os.Getenv("AZURE_SUBSCRIPTION_ID")
 	user := c.getUser()
+
+	// validate name
+	if !app.AppConfig.Azure.ResourceGroup.Validation.Validate(name) {
+		validationMessages = append(validationMessages,fmt.Sprintf("Validation of ResourceGroup name failed (%v)", app.AppConfig.Azure.ResourceGroup.Validation.HumanizeString()))
+	}
 
 	roleAssignmentList := []models.TeamAzureRoleAssignments{}
 	roleAssignmentList = append(roleAssignmentList, models.TeamAzureRoleAssignments{
@@ -76,6 +84,37 @@ func (c ApiAzure) CreateResourceGroup(resourceGroupName, location, team string, 
 		}
 	}
 
+	// create ResourceGroup tagList
+	tagList := map[string]*string{}
+
+	// add tags from user
+	for _, tagConfig := range app.AppConfig.Azure.ResourceGroup.Tags {
+		tagValue := ""
+		if val, ok := tag[tagConfig.Name]; ok {
+			tagValue = val
+		}
+
+		if ! tagConfig.Validation.Validate(tagValue) {
+			validationMessages = append(validationMessages, fmt.Sprintf("Validation of \"%s\" failed (%v)", tagConfig.Label, tagConfig.Validation.HumanizeString() ))
+		}
+
+		if tagValue != "" {
+			tagList[tagConfig.Name] = to.StringPtr(tagValue)
+		}
+	}
+
+	// fixed tags
+	tagList["creator"] = to.StringPtr(user.Username)
+	tagList["owner"] = to.StringPtr(team)
+	tagList["updated"] = to.StringPtr(time.Now().Local().Format("2006-01-02"))
+	tagList["created-by"] = to.StringPtr("devops-console")
+
+	if len(validationMessages) >= 1 {
+		messages := strings.Join(validationMessages, "\n")
+		c.Log.Error(messages)
+		return c.renderJSONError(messages)
+	}
+
 	// azure authorizer
 	authorizer, err = auth.NewAuthorizerFromEnvironment()
 	if err != nil {
@@ -94,7 +133,7 @@ func (c ApiAzure) CreateResourceGroup(resourceGroupName, location, team string, 
 	roleAssignmentsClient.Authorizer = authorizer
 
 	// check for existing resourcegroup
-	group, _ = groupsClient.Get(ctx, resourceGroupName)
+	group, _ = groupsClient.Get(ctx, name)
 	if group.ID != nil {
 		tagList := []string{}
 
@@ -107,8 +146,8 @@ func (c ApiAzure) CreateResourceGroup(resourceGroupName, location, team string, 
 			tagLine = fmt.Sprintf(" tags:%v", tagList)
 		}
 
-		c.Log.Error(fmt.Sprintf("Azure ResourceGroup already exists: \"%s\"%s", resourceGroupName, tagLine))
-		return c.renderJSONError(fmt.Sprintf("Azure ResourceGroup already exists: \"%s\"%s", resourceGroupName, tagLine))
+		c.Log.Error(fmt.Sprintf("Azure ResourceGroup already exists: \"%s\"%s", name, tagLine))
+		return c.renderJSONError(fmt.Sprintf("Azure ResourceGroup already exists: \"%s\"%s", name, tagLine))
 	}
 
 	// translate roles
@@ -135,30 +174,22 @@ func (c ApiAzure) CreateResourceGroup(resourceGroupName, location, team string, 
 		roleAssignmentList[roleAssignmentKey].Role = *roleDefinitions.Values()[0].ID
 	}
 
-
-	// create resourceGroup
-	tags := map[string]*string{
-		"creator": to.StringPtr(user.Username),
-		"owner": to.StringPtr(team),
-		"updated": to.StringPtr(time.Now().Local().Format("2006-01-02")),
-		"created-by": to.StringPtr("devops-console"),
-	}
 	resourceGroup := resources.Group{
 		Location: to.StringPtr(location),
-	  	Tags: tags,
+	  	Tags: tagList,
 	}
 
-	group, err = groupsClient.CreateOrUpdate(ctx, resourceGroupName, resourceGroup)
+	group, err = groupsClient.CreateOrUpdate(ctx, name, resourceGroup)
 	if err != nil {
 		c.Log.Error(fmt.Sprintf("Unable to create Azure ResourceGroup: %v", err))
 		return c.renderJSONError("Unable to create Azure ResourceGroup")
 	}
 
 	if personal {
-		c.auditLog(fmt.Sprintf("Azure ResourceGroup \"%s\" created (personal access)", resourceGroupName))
+		c.auditLog(fmt.Sprintf("Azure ResourceGroup \"%s\" created (personal access)", name))
 
 	} else {
-		c.auditLog(fmt.Sprintf("Azure ResourceGroup \"%s\" created (team access)", resourceGroupName))
+		c.auditLog(fmt.Sprintf("Azure ResourceGroup \"%s\" created (team access)", name))
 	}
 
 	// assign role to ResourceGroup

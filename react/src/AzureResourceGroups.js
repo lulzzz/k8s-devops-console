@@ -15,17 +15,27 @@ class K8sNamespace extends BaseComponent {
             searchValue: "",
             buttonText: "Create Azure ResourceGroup",
             requestRunning: false,
-            azTeam: "",
-            azResourceGroup: "",
-            azResourceGroupLocation: "westeurope",
-            azResourceGroupPersonal: false,
+
+            resourceGroup: {
+                team: "",
+                name: "",
+                location: "westeurope",
+                personal: false,
+                tag: {}
+            },
+
             config: {
                 User: {
                     Username: '',
                 },
                 Teams: [],
                 NamespaceEnvironments: [],
-                Quota: {}
+                Quota: {},
+                Azure: {
+                    ResourceGroup: {
+                        Tags: []
+                    }
+                }
             },
             isStartup: true
         };
@@ -65,9 +75,11 @@ class K8sNamespace extends BaseComponent {
 
     componentWillMount() {
         // select first team if no selection available
-        if (this.state.azTeam === "") {
+        if (this.state.resourceGroup.team === "") {
             if (this.state.config.Teams.length > 0) {
-                this.setState({azTeam: this.state.config.Teams[0].Name});
+                let state = this.state;
+                state.resourceGroup.team = this.state.config.Teams[0].Name
+                this.setState(state);
             }
         }
     }
@@ -80,30 +92,6 @@ class K8sNamespace extends BaseComponent {
     refresh() {
         this.setState({
             globalMessage: ""
-        });
-    }
-
-    handleAzTeamChange(event) {
-        this.setState({
-            azTeam: event.target.value
-        });
-    }
-
-    handleAzResourceGroup(event) {
-        this.setState({
-            azResourceGroup: event.target.value.trim()
-        });
-    }
-
-    handleAzResourceGroupLocation(event) {
-        this.setState({
-            azResourceGroupLocation: event.target.value.trim()
-        });
-    }
-
-    handleAzResourceGroupPersonal(event) {
-        this.setState({
-            azResourceGroupPersonal: event.target.checked
         });
     }
 
@@ -121,12 +109,7 @@ class K8sNamespace extends BaseComponent {
         let jqxhr = $.ajax({
             type: 'PUT',
             url: "/api/azure/resourcegroup",
-            data: {
-                team: this.state.azTeam,
-                resourceGroupName: this.state.azResourceGroup,
-                location: this.state.azResourceGroupLocation,
-                personal: this.state.azResourceGroupPersonal
-            }
+            data: this.state.resourceGroup
         }).done((jqxhr) => {
             this.setState({
                 globalMessage: "Azure ResourceGroup " + this.state.azResourceGroup + " created",
@@ -156,12 +139,52 @@ class K8sNamespace extends BaseComponent {
         return state
     }
 
-    getResourceGroups() {
-        return [];
+    handleResourceGroupInputChange(name, event) {
+        var state = this.state;
+        state.resourceGroup[name] = event.target.value;
+        this.setState(state);
     }
+
+
+    handleResourceGroupTagInputChange(name, event) {
+        var state = this.state;
+        state.resourceGroup["tag"][name] = event.target.value;
+        this.setState(state);
+    }
+
+    getResourceGroupItem(name) {
+        var ret = "";
+
+        if (this.state.resourceGroup && this.state.resourceGroup[name]) {
+            ret = this.state.resourceGroup[name];
+        }
+
+        return ret;
+    }
+
+    getResourceGroupTagItem(name) {
+        var ret = "";
+
+        if (this.state.resourceGroup.tag && this.state.resourceGroup.tag[name]) {
+            ret = this.state.resourceGroup.tag[name];
+        }
+
+        return ret;
+    }
+
 
     handleClickOutside() {
         this.setInputFocus();
+    }
+
+    azureResourceGroupTagConfig() {
+        let ret = [];
+
+        if (this.state.config.Azure.ResourceGroup.Tags) {
+            ret = this.state.config.Azure.ResourceGroup.Tags
+        }
+
+        return ret;
     }
 
     render() {
@@ -183,7 +206,7 @@ class K8sNamespace extends BaseComponent {
                     <form method="post">
                         <div className="form-group">
                             <label htmlFor="inputNsAreaTeam">Team</label>
-                            <select name="nsAreaTeam" id="inputNsAreaTeam" className="form-control namespace-area-team" value={this.state.azTeam} onChange={this.handleAzTeamChange.bind(this)}>
+                            <select name="nsAreaTeam" id="inputNsAreaTeam" className="form-control namespace-area-team" value={this.getResourceGroupItem("team")} onChange={this.handleResourceGroupInputChange.bind(this, "team")}>
                                 {this.state.config.Teams.map((row, value) =>
                                     <option key={row.Id} value={row.Name}>{row.Name}</option>
                                 )}
@@ -192,15 +215,23 @@ class K8sNamespace extends BaseComponent {
 
                         <div className="form-group">
                             <label htmlFor="inputNsApp" className="inputRg">Azure ResourceGroup</label>
-                            <input type="text" name="nsApp" id="inputRg" className="form-control" placeholder="ResourceGroup name" required value={this.state.azResourceGroup} onChange={this.handleAzResourceGroup.bind(this)} />
+                            <input type="text" name="nsApp" id="inputRg" className="form-control" placeholder="ResourceGroup name" required value={this.getResourceGroupItem("name")} onChange={this.handleResourceGroupInputChange.bind(this, "name")} />
                         </div>
                         <div className="form-group">
                             <label htmlFor="inputNsApp" className="inputRgLocation">Azure Location</label>
-                            <input type="text" name="nsApp" id="inputRgLocation" className="form-control" placeholder="ResourceGroup location" required value={this.state.azResourceGroupLocation} onChange={this.handleAzResourceGroupLocation.bind(this)} />
+                            <input type="text" name="nsApp" id="inputRgLocation" className="form-control" placeholder="ResourceGroup location" required value={this.getResourceGroupItem("location")} onChange={this.handleResourceGroupInputChange.bind(this, "location")} />
                         </div>
+
+                        {this.azureResourceGroupTagConfig().map((setting, value) =>
+                            <div className="form-group">
+                                <label htmlFor="inputNsApp" className="inputRg">{setting.Label}</label>
+                                <input type="text" name={setting.Name} id={setting.Name} className="form-control" placeholder={setting.Plaeholder} value={this.getResourceGroupTagItem(setting.Name)} onChange={this.handleResourceGroupTagInputChange.bind(this, setting.Name)} />
+                            </div>
+                        )}
+
                         <div className="form-group">
                             <div className="form-check">
-                                <input type="checkbox" className="form-check-input" id="az-resourcegroup-personal" checked={this.state.azResourceGroupPersonal} onChange={this.handleAzResourceGroupPersonal.bind(this)} />
+                                <input type="checkbox" className="form-check-input" id="az-resourcegroup-personal" checked={this.getResourceGroupItem("personal")} onChange={this.handleResourceGroupInputChange.bind(this, "personal")} />
                                 <label className="form-check-label" htmlFor="az-resourcegroup-personal">Personal ResourceGroup (only read access to team)</label>
                             </div>
                         </div>
