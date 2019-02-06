@@ -86,6 +86,10 @@ table.table thead th {
     cursor: pointer;
 }
 
+.alert {
+    white-space: pre-wrap;
+}
+
 .floating-message {
     position: relative;
     z-index: -1;
