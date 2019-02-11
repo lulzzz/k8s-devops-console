@@ -35,6 +35,7 @@ type AppConfigSettingItem struct {
 	Type string
 	Placeholder string
 	Validation AppInputValidation
+	Tags map[string]string
 }
 
 type AppConfigDefault struct {

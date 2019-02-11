@@ -26,6 +26,8 @@ azure:
       type: input
       validation:
         regexp: "^.+$"
+      tags:
+        service: "foobar"
 
 permissions:
   default:

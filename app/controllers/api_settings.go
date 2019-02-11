@@ -79,10 +79,20 @@ func (c ApiSettings) UpdateUser() revel.Result {
 
 	// set values
 	for _, setting := range app.AppConfig.Settings.User {
+		secretTags := map[string]*string{}
+		for name, value := range setting.Tags {
+			secretTags[name] = &value
+		}
+
+		secretTags["user"] = &c.Base.getUser().Username
+		secretTags["setting"] = &setting.Name
+
+
 		if val, ok := config[setting.Name]; ok {
 			err = c.setKeyvaultSecret(
 				c.userSecretName(setting.Name),
 				val,
+				secretTags,
 			)
 
 			if err != nil {
@@ -133,10 +143,20 @@ func (c ApiSettings) UpdateTeam(team string) revel.Result {
 
 	// set values
 	for _, setting := range app.AppConfig.Settings.Team {
+		secretTags := map[string]*string{}
+
+		for name, value := range setting.Tags {
+			secretTags[name] = &value
+		}
+
+		secretTags["team"] = &team
+		secretTags["setting"] = &setting.Name
+
 		if val, ok := config[setting.Name]; ok {
 			err = c.setKeyvaultSecret(
 				c.teamSecretName(team, setting.Name),
 				val,
+				secretTags,
 			)
 
 			if err != nil {
@@ -179,7 +199,7 @@ func (c ApiSettings) getKeyvaultClient(vaultUrl string) (*keyvault.BaseClient){
 	return c.vaultClient
 }
 
-func (c ApiSettings) setKeyvaultSecret(secretName, secretValue string) (error) {
+func (c ApiSettings) setKeyvaultSecret(secretName, secretValue string, tags map[string]*string) (error) {
 	ctx := context.Background()
 	vaultUrl := app.GetConfigString("azure.vault.url", "")
 
@@ -192,6 +212,8 @@ func (c ApiSettings) setKeyvaultSecret(secretName, secretValue string) (error) {
 	secretAttributs := keyvault.SecretAttributes{}
 	secretAttributs.Enabled = &enabled
 	secretParamSet.SecretAttributes = &secretAttributs
+
+	secretParamSet.Tags = tags
 
 	client := c.getKeyvaultClient("")
 	_, err := client.SetSecret(ctx, vaultUrl, secretName, secretParamSet)
