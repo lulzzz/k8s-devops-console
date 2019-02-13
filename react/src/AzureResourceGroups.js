@@ -111,10 +111,10 @@ class K8sNamespace extends BaseComponent {
             url: "/api/azure/resourcegroup",
             data: this.state.resourceGroup
         }).done((jqxhr) => {
-            this.setState({
-                globalMessage: "Azure ResourceGroup " + this.state.azResourceGroup + " created",
-                azResourceGroup: ""
-            });
+            let state = this.state;
+            state.globalMessage = "Azure ResourceGroup " + this.state.azResourceGroup + " created";
+            state.resourceGroup.name = "";
+            this.setState(state);
         }).always(() => {
             this.setState({
                 requestRunning: false,
