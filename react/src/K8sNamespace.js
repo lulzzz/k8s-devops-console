@@ -22,7 +22,12 @@ class K8sNamespace extends BaseComponent {
                 },
                 Teams: [],
                 NamespaceEnvironments: [],
-                Quota: {}
+                Quota: {},
+                Kubernetes: {
+                    Namespace: {
+                        Labels: []
+                    }
+                }
             },
             namespaceDescriptionEdit: false,
             namespaceDescriptionEditValue: "",
@@ -309,6 +314,7 @@ class K8sNamespace extends BaseComponent {
                         <col width="*" />
                         <col width="200rem" />
                         <col width="200rem" />
+                        <col width="200rem" />
                         <col width="100rem" />
                         <col width="80rem" />
                     </colgroup>
@@ -316,6 +322,7 @@ class K8sNamespace extends BaseComponent {
                     <tr>
                         <th>Namespace</th>
                         <th>Owner</th>
+                        <th>Labels</th>
                         <th>Created</th>
                         <th>Status</th>
                         <th className="toolbox">
@@ -354,6 +361,13 @@ class K8sNamespace extends BaseComponent {
                             </td>
                             <td>
                                 {this.renderRowOwner(row)}
+                            </td>
+                            <td class="small">
+                                {Object.keys(row.Labels).map((label, index) =>
+                                    <div>
+                                        <span className="badge badge-light">{label}: {row.Labels[label]}</span>
+                                    </div>
+                                )}
                             </td>
                             <td><div title={row.Created}>{row.CreatedAgo}</div></td>
                             <td>

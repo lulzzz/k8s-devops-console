@@ -29,6 +29,17 @@ azure:
       tags:
         service: "foobar"
 
+kubernetes:
+    namespace:
+      labels:
+      - name: foobar
+        k8slabel: example.com/foobar
+        label: Foobar
+        type: input
+        validation:
+          regexp: "^.+$"
+
+
 permissions:
   default:
     teams:

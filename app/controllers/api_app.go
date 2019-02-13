@@ -17,6 +17,7 @@ type ResultConfig struct {
 	NamespaceEnvironments []ResultNamespaceConfig
 	Quota map[string]int
 	Azure models.AppConfigAzure
+	Kubernetes models.AppConfigKubernetes
 }
 
 type ResultUser struct {
@@ -66,6 +67,9 @@ func (c ApiApp) Config() revel.Result {
 
 	// azure
 	ret.Azure = app.AppConfig.Azure
+
+	// kubernetes
+	ret.Kubernetes = app.AppConfig.Kubernetes
 
 	return c.RenderJSON(ret)
 }

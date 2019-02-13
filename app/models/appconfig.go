@@ -10,6 +10,7 @@ import (
 type AppConfig struct {
 	Settings AppConfigSettings `yaml:"settings"`
 	Azure AppConfigAzure `yaml:"azure"`
+	Kubernetes AppConfigKubernetes `yaml:"kubernetes"`
 	Permissions AppConfigPermissions `yaml:"permissions"`
 }
 
@@ -68,6 +69,21 @@ type AppConfigAzureResourceGroupTag struct {
 	Type string
 	Placeholder string
 	Validation AppInputValidation
+}
+
+type AppConfigNamespaceLabel struct {
+	Name string
+	Label string
+	K8sLabel string
+	Type string
+	Placeholder string
+	Validation AppInputValidation
+}
+
+type AppConfigKubernetes struct {
+	Namespace struct {
+		Labels []AppConfigNamespaceLabel
+	}
 }
 
 func AppConfigCreateFromYaml(yamlString string) (c *AppConfig, err error) {

@@ -10,13 +10,17 @@ class K8sNamespaceModalCreate extends BaseComponent {
 
         this.state = {
             namespacePreview: "",
-            nsEnvironment: "user",
-            nsTeam: "",
-            nsApp: "",
-            nsDescription: "",
             buttonText: "Create namespace",
             buttonState: "disabled",
-            globalError: ""
+            globalError: "",
+
+            namespace: {
+                environment: "",
+                app: "",
+                team: "",
+                description: "",
+                label: {}
+            }
         };
     }
 
@@ -34,12 +38,7 @@ class K8sNamespaceModalCreate extends BaseComponent {
         let jqxhr = $.ajax({
             type: 'PUT',
             url: "/api/namespace",
-            data: {
-                nsEnvironment: this.state.nsEnvironment,
-                nsAreaTeam: this.state.nsTeam,
-                nsApp: this.state.nsApp,
-                description: this.state.nsDescription
-            }
+            data: this.state.namespace
         }).done((jqxhr) => {
             this.setState({
                nsApp: "",
@@ -64,52 +63,71 @@ class K8sNamespaceModalCreate extends BaseComponent {
         this.handleXhr(jqxhr);
     }
 
-    handleNsEnvironmentChange(event) {
-        this.setState({
-            nsEnvironment: event.target.value
-        });
+    handleNamespaceInputChange(name, event) {
+        var state = this.state;
+        state.namespace[name] = event.target.value;
+        this.setState(state);
+
+        this.handleButtonState()
     }
 
-    handleNsTeamChange(event) {
-        this.setState({
-            nsTeam: event.target.value
-        });
+
+    handleNamespaceLabelInputChange(name, event) {
+        var state = this.state;
+        state.namespace["label"][name] = event.target.value;
+        this.setState(state);
     }
 
-    handleNsUserChange(event) {
+    getNamespaceItem(name) {
+        var ret = "";
+
+        if (this.state.namespace && this.state.namespace[name]) {
+            ret = this.state.namespace[name];
+        }
+
+        return ret;
     }
 
-    handleNsAppChange(event) {
+    getNamespaceLabelItem(name) {
+        var ret = "";
+
+        if (this.state.namespace.label && this.state.namespace.label[name]) {
+            ret = this.state.namespace.label[name];
+        }
+
+        return ret;
+    }
+
+    handleButtonState(event) {
         let buttonState = "disabled";
 
-        if (event.target.value) {
-            buttonState = "";
+        if (this.state.namespace.environment != "" && this.state.namespace.app != "" && this.state.namespace.team != "") {
+            buttonState = ""
         }
-        
+
         this.setState({
-            nsApp: event.target.value,
             buttonState: buttonState,
         });
     }
 
     handleNsDescriptionChange(event) {
-        this.setState({
-            nsDescription: event.target.value
-        });
+        let state = this.state;
+        state.namespace.description = event.target.value;
+        this.setState(state);
     }
 
     previewNamespace() {
         let namespace = "";
 
-        switch (this.state.nsEnvironment) {
+        switch (this.state.namespace.environment) {
             case "user":
-                namespace = "user-" + this.props.config.User.Username + "-" + this.state.nsApp;
+                namespace = "user-" + this.props.config.User.Username + "-" + this.state.namespace.app;
                 break;
             case "team":
-                namespace = "team-" + this.state.nsTeam + "-" + this.state.nsApp;
+                namespace = "team-" + this.state.namespace.team + "-" + this.state.namespace.app;
                 break;
             default:
-                namespace = this.state.nsEnvironment + "-" + this.state.nsApp;
+                namespace = this.state.namespace.environment + "-" + this.state.namespace.app;
                 break;
         }
 
@@ -117,12 +135,34 @@ class K8sNamespaceModalCreate extends BaseComponent {
     }
 
     componentWillMount() {
+        let state = this.state;
+
         // select first team if no selection available
-        if (this.state.nsTeam === "") {
+        if (this.state.namespace.team === "") {
             if (this.props.config.Teams.length > 0) {
-                this.setState({nsTeam: this.props.config.Teams[0].Name});
+                state.namespace.team = this.props.config.Teams[0].Name;
             }
         }
+
+        if (this.state.namespace.environment === "") {
+            if (this.props.config.NamespaceEnvironments.length > 0) {
+                console.log(this.props.config.NamespaceEnvironments);
+                state.namespace.environment = this.props.config.NamespaceEnvironments[0].Environment;
+            }
+        }
+
+        this.setState(state);
+    }
+
+
+    kubernetesLabelConfig() {
+        let ret = [];
+
+        if (this.props.config.Kubernetes.Namespace.Labels) {
+            ret = this.props.config.Kubernetes.Namespace.Labels;
+        }
+
+        return ret;
     }
 
     render() {
@@ -143,7 +183,7 @@ class K8sNamespaceModalCreate extends BaseComponent {
                                     <div className="row">
                                         <div className="col-3">
                                             <label htmlFor="inputNsEnvironment">Environment</label>
-                                            <select name="nsEnvironment" id="inputNsEnvironment" className="form-control" required value={this.state.nsEnvironment} onChange={this.handleNsEnvironmentChange.bind(this)}>
+                                            <select name="nsEnvironment" id="inputNsEnvironment" className="form-control" required value={this.getNamespaceItem("environment")} onChange={this.handleNamespaceInputChange.bind(this, "environment")}>
                                             {this.props.config.NamespaceEnvironments.map((row) =>
                                                 <option key={row.Environment} value={row.Environment}>{row.Environment} ({row.Description})</option>
                                             )}
@@ -151,7 +191,7 @@ class K8sNamespaceModalCreate extends BaseComponent {
                                         </div>
                                         <div>
                                             <label htmlFor="inputNsAreaTeam">Team</label>
-                                            <select name="nsAreaTeam" id="inputNsAreaTeam" className="form-control namespace-area-team" value={this.state.nsTeam} onChange={this.handleNsTeamChange.bind(this)}>
+                                            <select name="nsAreaTeam" id="inputNsAreaTeam" className="form-control namespace-area-team" value={this.getNamespaceItem("team")} onChange={this.handleNamespaceInputChange.bind(this, "team")}>
                                                 {this.props.config.Teams.map((row, value) =>
                                                     <option key={row.Id} value={row.Name}>{row.Name}</option>
                                                 )}
@@ -159,14 +199,23 @@ class K8sNamespaceModalCreate extends BaseComponent {
                                         </div>
                                         <div className="col">
                                             <label htmlFor="inputNsApp" className="inputNsApp">Application</label>
-                                            <input type="text" name="nsApp" id="inputNsApp" className="form-control" placeholder="Name" required value={this.state.nsApp} onChange={this.handleNsAppChange.bind(this)} />
+                                            <input type="text" name="nsApp" id="inputNsApp" className="form-control" placeholder="Name" required value={this.getNamespaceItem("app")} onChange={this.handleNamespaceInputChange.bind(this, "app")} />
                                         </div>
                                     </div>
                                     <div className="row">
                                         <div className="col">
-                                            <input type="text" name="nsDescription" id="inputNsDescription" className="form-control" placeholder="Description" value={this.state.nsDescription} onChange={this.handleNsDescriptionChange.bind(this)} />
+                                            <input type="text" name="nsDescription" id="inputNsDescription" className="form-control" placeholder="Description" value={this.getNamespaceItem("description")} onChange={this.handleNamespaceInputChange.bind(this, "description")} />
                                         </div>
                                     </div>
+
+                                    {this.kubernetesLabelConfig().map((setting, value) =>
+                                        <div className="form-group">
+                                            <label htmlFor="inputNsApp" className="inputRg">{setting.Label}</label>
+                                            <input type="text" name={setting.Name} id={setting.Name} className="form-control" placeholder={setting.Plaeholder} value={this.getNamespaceLabelItem(setting.Name)} onChange={this.handleNamespaceLabelInputChange.bind(this, setting.Name)} />
+                                        </div>
+                                    )}
+
+
                                     <div className="row">
                                         <div className="col">
                                             <div className="p-3 mb-2 bg-light text-dark">

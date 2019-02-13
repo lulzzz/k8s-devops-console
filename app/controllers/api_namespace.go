@@ -27,6 +27,7 @@ type ResultNamespace struct {
 	Created string
 	CreatedAgo string
 	Deleteable bool
+	Labels map[string]string
 }
 
 type ApiNamespace struct {
@@ -81,6 +82,8 @@ func (c ApiNamespace) List() revel.Result {
 			row.OwnerUser = val
 		}
 
+		row.Labels = ns.Labels
+
 		ret = append(ret, row)
 	}
 
@@ -89,7 +92,7 @@ func (c ApiNamespace) List() revel.Result {
 	return c.RenderJSON(ret)
 }
 
-func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp, description string) revel.Result {
+func (c ApiNamespace) Create() revel.Result {
 	result := struct {
 		Namespace string
 		Message string
@@ -97,6 +100,17 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp, description strin
 		Namespace: "",
 		Message: "",
 	}
+
+	nsEnvironment := ""
+	nsAreaTeam := ""
+	nsApp := ""
+	nsDescription := ""
+	nsLabels := map[string]string{}
+	c.Params.Bind(&nsEnvironment, "environment")
+	c.Params.Bind(&nsAreaTeam, "team")
+	c.Params.Bind(&nsApp, "app")
+	c.Params.Bind(&nsDescription, "description")
+	c.Params.Bind(&nsLabels, "label")
 
 	labelUserKey := app.GetConfigString("k8s.label.user", "user");
 	labelTeamKey := app.GetConfigString("k8s.label.team", "team");
@@ -111,8 +125,29 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp, description strin
 		return c.RenderJSON(result)
 	}
 
-	labels := map[string]string{}
-	labels[labelEnvKey] = nsEnvironment
+	labels := map[string]string{
+		labelEnvKey: nsEnvironment,
+	}
+
+	// validation
+	validationMessages := []string{}
+	for _, setting := range app.AppConfig.Kubernetes.Namespace.Labels {
+		if val, ok := nsLabels[setting.Name]; ok {
+			if setting.Validation.Validate(val) {
+				labels[setting.K8sLabel] = val
+			} else {
+				validationMessages = append(validationMessages, fmt.Sprintf("Validation of \"%s\" failed (%v)", setting.Label, setting.Validation.HumanizeString()))
+			}
+		}
+	}
+
+	if len(validationMessages) >= 1 {
+		result.Message = strings.Join(validationMessages, "\n")
+		c.Response.Status = http.StatusBadRequest
+		return c.RenderJSON(result)
+	}
+
+
 
 	// check if environment is allowed
 	if ! toolbox.SliceStringContains(app.NamespaceEnvironments, nsEnvironment) {
@@ -181,7 +216,7 @@ func (c ApiNamespace) Create(nsEnvironment, nsAreaTeam, nsApp, description strin
 	if namespace.Annotations == nil {
 		namespace.Annotations = map[string]string{}
 	}
-	namespace.Annotations[k8sAnnotationDescription] = description
+	namespace.Annotations[k8sAnnotationDescription] = nsDescription
 
 	if ! c.checkKubernetesNamespaceAccess(namespace) {
 		result.Message = fmt.Sprintf("Access to namespace \"%s\" denied", namespace.Name)
