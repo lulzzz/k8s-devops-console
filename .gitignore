@@ -1,8 +1,8 @@
 test-results/
 tmp/
 routes/
-/public/js/main.*.js
-/public/js/main.*.js.map
+/public/js/*.js
+/public/js/*.js.map
 /app/views/react.html
 /*.env
 /vendor/
