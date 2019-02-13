@@ -162,6 +162,17 @@ class K8sNamespace extends BaseComponent {
         return ret;
     }
 
+
+    handleResourceGroupCheckboxChange(name, event) {
+        var state = this.state;
+        state.resourceGroup[name] = event.target.checked;
+        this.setState(state);
+    }
+
+    getResourceGroupItemBool(name) {
+        return (this.state.resourceGroup && this.state.resourceGroup[name])
+    }
+
     getResourceGroupTagItem(name) {
         var ret = "";
 
@@ -231,7 +242,7 @@ class K8sNamespace extends BaseComponent {
 
                         <div className="form-group">
                             <div className="form-check">
-                                <input type="checkbox" className="form-check-input" id="az-resourcegroup-personal" checked={this.getResourceGroupItem("personal")} onChange={this.handleResourceGroupInputChange.bind(this, "personal")} />
+                                <input type="checkbox" className="form-check-input" id="az-resourcegroup-personal" checked={this.getResourceGroupItemBool("personal")} onChange={this.handleResourceGroupCheckboxChange.bind(this, "personal")} />
                                 <label className="form-check-label" htmlFor="az-resourcegroup-personal">Personal ResourceGroup (only read access to team)</label>
                             </div>
                         </div>
